@@ -862,6 +862,13 @@ contains
           call interior_tendency_forcings(id)%set_rank(num_elements, 1, marbl_status_log, dim1 = num_PAR_subcols)
         end if
 
+        ! Ice Fraction
+        if (id .eq. ind%ifrac_id) then
+          found = .true.
+          interior_tendency_forcings(id)%metadata%varname       = 'Ice Fraction'
+          interior_tendency_forcings(id)%metadata%field_units   = 'unitless'
+          call interior_tendency_forcings(id)%set_rank(num_elements, 0, marbl_status_log)
+        end if
 
         ! Temperature
         if (id .eq. ind%potemp_id) then

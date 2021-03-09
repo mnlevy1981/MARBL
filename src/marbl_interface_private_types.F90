@@ -402,6 +402,7 @@ module marbl_interface_private_types
      integer(int_kind) :: dustflux_id        = 0
      integer(int_kind) :: PAR_col_frac_id    = 0
      integer(int_kind) :: surf_shortwave_id  = 0
+     integer(int_kind) :: ifrac_id           = 0
 
      ! Column fields
      integer(int_kind) :: potemp_id      = 0
@@ -1754,6 +1755,7 @@ contains
 
     use marbl_settings_mod, only : lo2_consumption_scalef
     use marbl_settings_mod, only : lp_remin_scalef
+    use marbl_settings_mod, only : zooplankton_settings
 
     class(marbl_interior_tendency_forcing_indexing_type), intent(out)   :: this
     character(len=char_len), dimension(:),                intent(in)    :: tracer_names
@@ -1766,7 +1768,7 @@ contains
     character(len=char_len)     :: log_message
 
     integer :: tracer_restore_cnt, tracer_cnt
-    integer :: m, n
+    integer :: m, n, zoo_ind
 
     associate(forcing_cnt => num_interior_tendency_forcing_fields)
 
@@ -1815,6 +1817,19 @@ contains
         forcing_cnt = forcing_cnt + 1
         this%p_remin_scalef_id = forcing_cnt
       endif
+
+      ! Add ice fraction if any zooplankton_settings require it
+      do zoo_ind=1,size(zooplankton_settings)
+        ! TODO: discussion point - mort_multiplier_iopt hasn't been set yet;
+        !                          I can either depend on string value or
+        !                          rearrange calls in marbl_instance%init()
+        !                          so that this can depend on integer value
+        if (zooplankton_settings(zoo_ind)%mort_multiplier_opt.eq."sw_and_ice_dependent") then
+          forcing_cnt = forcing_cnt + 1
+          this%ifrac_id = forcing_cnt
+          exit
+        end if
+      end do
 
       ! Tracer restoring
       ! Note that this section
