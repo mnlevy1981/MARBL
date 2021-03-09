@@ -55,16 +55,18 @@ module marbl_pft_mod
   type, public :: zooplankton_settings_type
      character(len=char_len) :: sname
      character(len=char_len) :: lname
-     character(len=char_len) :: temp_func_form_opt  ! temperature functional form option ['q_10', 'arrhenius', 'power']
-     integer                 :: temp_func_form_iopt ! Integer derived from temp_func_form_opt for easier comparison
-     real(r8)                :: z_mort_0_per_day    ! zoo linear mort rate (1/day)
-     real(r8)                :: z_mort_0            ! zoo linear mort rate (1/sec) (derived from z_mort_0_per_day)
-     real(r8)                :: z_mort2_0_per_day   ! zoo quad mort rate (1/day/((mmol C/m3))
-     real(r8)                :: z_mort2_0           ! zoo quad mort rate (1/sec/((mmol C/m3)) (derived from z_mort2_0_per_day)
-     real(r8)                :: loss_thres          ! zoo conc. where losses go to zero
-     real(r8)                :: Tref                ! reference temperature (C) used for the temperature scaling functional form
-                                                    !    (derived from temp_func_form_opt)
-     real(r8)                :: Ea                  ! activation energy for Arrhenius temperature function (eV)
+     character(len=char_len) :: temp_func_form_opt   ! temperature functional form option ['q_10', 'arrhenius', 'power']
+     integer                 :: temp_func_form_iopt  ! Integer derived from temp_func_form_opt for easier comparison
+     character(len=char_len) :: mort_multiplier_opt  ! Form of coefficient applied to mortality terms
+     integer                 :: mort_multiplier_iopt ! Integer derived from mort_multiplier_opt for easier comparison
+     real(r8)                :: z_mort_0_per_day     ! zoo linear mort rate (1/day)
+     real(r8)                :: z_mort_0             ! zoo linear mort rate (1/sec) (derived from z_mort_0_per_day)
+     real(r8)                :: z_mort2_0_per_day    ! zoo quad mort rate (1/day/((mmol C/m3))
+     real(r8)                :: z_mort2_0            ! zoo quad mort rate (1/sec/((mmol C/m3)) (derived from z_mort2_0_per_day)
+     real(r8)                :: loss_thres           ! zoo conc. where losses go to zero
+     real(r8)                :: Tref                 ! reference temperature (C) used for the temperature scaling functional form
+                                                     !    (derived from temp_func_form_opt)
+     real(r8)                :: Ea                   ! activation energy for Arrhenius temperature function (eV)
    contains
      procedure, public :: set_to_default => zooplankton_set_to_default
   end type zooplankton_settings_type
@@ -260,17 +262,19 @@ contains
 
     select case (zooplankton_id)
       case ('zoo')
-        self%sname = 'zoo'                       ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%lname = 'Zooplankton'               ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%temp_func_form_opt = 'q_10'         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%z_mort_0_per_day   = 0.1_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%z_mort2_0_per_day  = 0.4_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%loss_thres         = 0.075_r8       ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%Ea                 = 0.65_r8        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%sname = 'zoo'                        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%lname = 'Zooplankton'                ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%temp_func_form_opt  = 'q_10'         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%mort_multiplier_opt = 'constant_one' ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%z_mort_0_per_day    = 0.1_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%z_mort2_0_per_day   = 0.4_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%loss_thres          = 0.075_r8       ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
+        self%Ea                  = 0.65_r8        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
       case ('unset')
         self%sname = 'unknown'
         self%lname = 'unknown'
         self%temp_func_form_opt = 'unknown'
+        self%mort_multiplier_opt = 'unknown'
         self%z_mort_0_per_day   = UnsetValue
         self%z_mort2_0_per_day  = UnsetValue
         self%loss_thres         = UnsetValue

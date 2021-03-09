@@ -337,6 +337,8 @@ module marbl_settings_mod
   integer (int_kind), parameter :: temp_func_form_iopt_q10           = 1
   integer (int_kind), parameter :: temp_func_form_iopt_arrhenius     = 2
   integer (int_kind), parameter :: temp_func_form_iopt_power         = 3
+  integer (int_kind), parameter :: mort_multiplier_iopt_c1           = 1
+  integer (int_kind), parameter :: mort_multiplier_iopt_sw_and_ice   = 2
 
   !*****************************************************************************
 
@@ -1572,6 +1574,16 @@ contains
                         nondefault_required=(PFT_defaults .eq. 'user-specified'))
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
+      write(sname, "(2A)") trim(prefix), 'mort_multiplier_opt'
+      lname    = 'Form of coefficient applied to mortality terms'
+      units    = 'unitless'
+      datatype = 'string'
+      sptr     => zooplankton_settings(n)%mort_multiplier_opt
+      call this%add_var(sname, lname, units, datatype, category,     &
+                        marbl_status_log, sptr=sptr,                 &
+                        nondefault_required=(PFT_defaults .eq. 'user-specified'))
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
       write(sname, "(2A)") trim(prefix), 'z_mort_0_per_day'
       lname    = 'Linear mortality rate'
       units    = '1/day'
@@ -1912,6 +1924,17 @@ contains
        write(sname_out, "(A,I0,A)") 'zooplankton_settings(', n, ')%Tref'
        call print_single_derived_parm(sname_in, sname_out, &
             zooplankton_settings(n)%Tref, subname, marbl_status_log)
+
+       call set_derived_from_mort_multiplier(zooplankton_settings(n)%mort_multiplier_opt, &
+            zooplankton_settings(n)%mort_multiplier_iopt, marbl_status_log)
+       write(sname_in,  "(A,I0,A)") 'zooplankton_settings(', n, ')%mort_multiplier_opt'
+       write(sname_out, "(A,I0,A)") 'zooplankton_settings(', n, ')%mort_multiplier_iopt'
+       if (marbl_status_log%labort_MARBL) then
+         write(log_message, "(3A)") "set_derived_from_mort_multiplier(", trim(sname_in), ")"
+         call marbl_status_log%log_error_trace(log_message, subname)
+       end if
+       call print_single_derived_parm(sname_in, sname_out, &
+            zooplankton_settings(n)%mort_multiplier_iopt, subname, marbl_status_log)
 
        zooplankton_settings(n)%z_mort_0 = dps * zooplankton_settings(n)%z_mort_0_per_day
        write(sname_in,  "(A,I0,A)") 'zooplankton_settings(', n, ')%z_mort_0_per_day'
@@ -2889,8 +2912,12 @@ contains
     real(r8),             intent(out)   :: Tref
     type(marbl_log_type), intent(inout) :: marbl_status_log
 
+    !---------------------------------------------------------------------------
+    !   local variables
+    !---------------------------------------------------------------------------
     character(len=*), parameter :: subname = "marbl_settings_mod:set_derived_from_temp_func_form"
     character(len=char_len) :: log_message
+
     select case (temp_func_form_opt)
     case ('q_10')
        temp_func_form_iopt = temp_func_form_iopt_q10
@@ -2908,6 +2935,33 @@ contains
     end select
 
   end subroutine set_derived_from_temp_func_form
+
+  !*****************************************************************************
+
+  subroutine set_derived_from_mort_multiplier(mort_multiplier_opt, mort_multiplier_iopt, marbl_status_log)
+
+    character(len=*),     intent(in)    :: mort_multiplier_opt
+    integer,              intent(out)   :: mort_multiplier_iopt
+    type(marbl_log_type), intent(inout) :: marbl_status_log
+
+    !---------------------------------------------------------------------------
+    !   local variables
+    !---------------------------------------------------------------------------
+    character(len=*), parameter :: subname = "marbl_settings_mod:set_derived_from_mort_multiplier"
+    character(len=char_len) :: log_message
+
+    select case (mort_multiplier_opt)
+    case ('constant_one')
+       mort_multiplier_iopt = mort_multiplier_iopt_c1
+    case ('sw_and_ice_dependent')
+       mort_multiplier_iopt = mort_multiplier_iopt_sw_and_ice
+    case default
+       write(log_message, "(2A)") "unknown mort_multiplier_opt: ", trim(mort_multiplier_opt)
+       call marbl_status_log%log_error(log_message, subname)
+       return
+    end select
+
+  end subroutine set_derived_from_mort_multiplier
 
   !*****************************************************************************
 

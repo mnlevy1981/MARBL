@@ -991,6 +991,17 @@ PFT_derived_types :
             default_value :
                default : UNSET
                ((zooplankton_sname)) == "zoo" : q_10
+         mort_multiplier_opt:
+            longname : Option for the form of coefficient applied to mortality terms
+            subcategory : 11. zooplankton
+            units : non-numeric
+            datatype : string
+            valid_values :
+               - constant_one
+               - sw_and_ice_dependent
+            default_value :
+               default : UNSET
+               ((zooplankton_sname)) == "zoo" : constant_one
          z_mort_0_per_day :
             longname : Linear mortality rate
             subcategory : 11. zooplankton

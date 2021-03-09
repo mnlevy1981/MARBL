@@ -584,6 +584,20 @@
                "subcategory": "11. zooplankton",
                "units": "nmol/cm^3"
             },
+            "mort_multiplier_opt": {
+               "datatype": "string",
+               "default_value": {
+                  "((zooplankton_sname)) == \"zoo\"": "constant_one",
+                  "default": "UNSET"
+               },
+               "longname": "Option for the form of coefficient applied to mortality terms",
+               "subcategory": "11. zooplankton",
+               "units": "non-numeric",
+               "valid_values": [
+                  "constant_one",
+                  "sw_and_ice_dependent"
+               ]
+            },
             "sname": {
                "datatype": "string",
                "default_value": {
