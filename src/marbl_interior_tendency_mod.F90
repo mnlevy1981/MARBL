@@ -345,7 +345,8 @@ contains
 
     call compute_autotroph_loss(km, Tfunc_auto(:,:), autotroph_derived_terms)
 
-    call compute_Zprime(km, domain%zt, zooplankton_local%C, Tfunc_zoo(:,:), zooplankton_derived_terms)
+    call compute_Zprime(km, domain%zt, interior_tendency_forcings, interior_tendency_forcing_indices, &
+                        zooplankton_local%C, Tfunc_zoo(:,:), zooplankton_derived_terms)
 
     call compute_grazing(km, Tfunc_zoo(:,:), zooplankton_local, zooplankton_derived_terms, autotroph_derived_terms)
 
@@ -1728,7 +1729,8 @@ contains
 
   !***********************************************************************
 
-  subroutine compute_Zprime(km, zt, zooC, Tfunc_zoo, zooplankton_derived_terms)
+  subroutine compute_Zprime(km, zt, interior_tendency_forcings, interior_tendency_forcing_ind, &
+                            zooC, Tfunc_zoo, zooplankton_derived_terms)
 
     use marbl_settings_mod, only : thres_z1_zoo
     use marbl_settings_mod, only : thres_z2_zoo
@@ -1737,6 +1739,8 @@ contains
 
     integer(int_kind),                    intent(in)    :: km
     real(r8),                             intent(in)    :: zt(km)
+    type(marbl_forcing_fields_type),      intent(in)    :: interior_tendency_forcings(:)
+    type(marbl_interior_tendency_forcing_indexing_type), intent(in) :: interior_tendency_forcing_ind
     real(r8),                             intent(in)    :: zooC(zooplankton_cnt,km)
     real(r8),                             intent(in)    :: Tfunc_zoo(zooplankton_cnt,km)
     type(zooplankton_derived_terms_type), intent(inout) :: zooplankton_derived_terms
@@ -1762,9 +1766,21 @@ contains
       do zoo_ind = 1, zooplankton_cnt
         select case (zooplankton_settings(zoo_ind)%mort_multiplier_iopt)
           case (mort_multiplier_iopt_sw_and_ice)
-            ! TODO: these should depend on shortwave and ifrac
-            z_mort = zooplankton_settings(zoo_ind)%z_mort_0
-            z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+            associate(&
+              surf_sw => interior_tendency_forcings(interior_tendency_forcing_ind%surf_shortwave_id)%field_1d(1,:), &
+              ice_frac => interior_tendency_forcings(interior_tendency_forcing_ind%ifrac_id)%field_0d(:) &
+              )
+              ! TODO: Determine relationship between surf_sw, ice_frac, and mort rates
+              ! if ((sum(surf_sw).le.1._r8) .and. (ice_frac(1).gt.0.9_r8)) then
+              !   z_mort = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort_0
+              !   z_mort2 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort2_0
+              ! else
+              !   z_mort = zooplankton_settings(zoo_ind)%z_mort_0
+              !   z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+              ! end if
+              z_mort = zooplankton_settings(zoo_ind)%z_mort_0
+              z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+            end associate
           case DEFAULT
             z_mort = zooplankton_settings(zoo_ind)%z_mort_0
             z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
