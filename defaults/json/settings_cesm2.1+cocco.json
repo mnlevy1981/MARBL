@@ -624,7 +624,7 @@
                "subcategory": "11. zooplankton",
                "units": "nmol/cm^3"
             },
-            "mort_multiplier_opt": {
+            "mort_coeff_opt": {
                "datatype": "string",
                "default_value": {
                   "((zooplankton_sname)) == \"zoo\"": "constant_one",

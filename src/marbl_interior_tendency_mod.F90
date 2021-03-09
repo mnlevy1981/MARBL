@@ -1735,7 +1735,7 @@ contains
     use marbl_settings_mod, only : thres_z1_zoo
     use marbl_settings_mod, only : thres_z2_zoo
     use marbl_settings_mod, only : zoo_mort2_exp
-    use marbl_settings_mod, only : mort_multiplier_iopt_sw_and_ice
+    use marbl_settings_mod, only : mort_coeff_iopt_sw_and_ice
 
     integer(int_kind),                    intent(in)    :: km
     real(r8),                             intent(in)    :: zt(km)
@@ -1751,8 +1751,8 @@ contains
     integer  :: zoo_ind
     real(r8) :: f_loss_thres(km)
     real(r8) :: C_loss_thres(km)
-    real(r8) :: z_mort
-    real(r8) :: z_mort2
+    real(r8) :: z_mort_0
+    real(r8) :: z_mort2_0
     !-----------------------------------------------------------------------
 
     associate(                                               &
@@ -1764,33 +1764,33 @@ contains
       f_loss_thres(:) = min(max((thres_z2_zoo - zt(:))/(thres_z2_zoo - thres_z1_zoo), c0), c1)
 
       do zoo_ind = 1, zooplankton_cnt
-        select case (zooplankton_settings(zoo_ind)%mort_multiplier_iopt)
-          case (mort_multiplier_iopt_sw_and_ice)
+        select case (zooplankton_settings(zoo_ind)%mort_coeff_iopt)
+          case (mort_coeff_iopt_sw_and_ice)
             associate(&
               surf_sw => interior_tendency_forcings(interior_tendency_forcing_ind%surf_shortwave_id)%field_1d(1,:), &
               ice_frac => interior_tendency_forcings(interior_tendency_forcing_ind%ifrac_id)%field_0d(:) &
               )
               ! TODO: Determine relationship between surf_sw, ice_frac, and mort rates
               ! if ((sum(surf_sw).le.1._r8) .and. (ice_frac(1).gt.0.9_r8)) then
-              !   z_mort = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort_0
-              !   z_mort2 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort2_0
+              !   z_mort_0 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort_0
+              !   z_mort2_0 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort2_0
               ! else
-              !   z_mort = zooplankton_settings(zoo_ind)%z_mort_0
-              !   z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+              !   z_mort_0 = zooplankton_settings(zoo_ind)%z_mort_0
+              !   z_mort2_0 = zooplankton_settings(zoo_ind)%z_mort2_0
               ! end if
-              z_mort = zooplankton_settings(zoo_ind)%z_mort_0
-              z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+              z_mort_0 = zooplankton_settings(zoo_ind)%z_mort_0
+              z_mort2_0 = zooplankton_settings(zoo_ind)%z_mort2_0
             end associate
           case DEFAULT
-            z_mort = zooplankton_settings(zoo_ind)%z_mort_0
-            z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+            z_mort_0 = zooplankton_settings(zoo_ind)%z_mort_0
+            z_mort2_0 = zooplankton_settings(zoo_ind)%z_mort2_0
         end select
 
         C_loss_thres(:) = f_loss_thres(:) * zooplankton_settings(zoo_ind)%loss_thres
         Zprime(zoo_ind,:) = max(zooC(zoo_ind,:) - C_loss_thres, c0)
 
-        zoo_loss(zoo_ind,:) = (z_mort2 * Zprime(zoo_ind,:)**zoo_mort2_exp &
-                               + z_mort * Zprime(zoo_ind,:)) * Tfunc_zoo(zoo_ind,:)
+        zoo_loss(zoo_ind,:) = (z_mort2_0 * Zprime(zoo_ind,:)**zoo_mort2_exp &
+                               + z_mort_0 * Zprime(zoo_ind,:)) * Tfunc_zoo(zoo_ind,:)
       end do
 
     end associate

@@ -1820,11 +1820,11 @@ contains
 
       ! Add ice fraction if any zooplankton_settings require it
       do zoo_ind=1,size(zooplankton_settings)
-        ! TODO: discussion point - mort_multiplier_iopt hasn't been set yet;
+        ! TODO: discussion point - mort_coeff_iopt hasn't been set yet;
         !                          I can either depend on string value or
         !                          rearrange calls in marbl_instance%init()
         !                          so that this can depend on integer value
-        if (zooplankton_settings(zoo_ind)%mort_multiplier_opt.eq."sw_and_ice_dependent") then
+        if (zooplankton_settings(zoo_ind)%mort_coeff_opt.eq."sw_and_ice_dependent") then
           forcing_cnt = forcing_cnt + 1
           this%ifrac_id = forcing_cnt
           exit

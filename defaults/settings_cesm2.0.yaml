@@ -991,7 +991,7 @@ PFT_derived_types :
             default_value :
                default : UNSET
                ((zooplankton_sname)) == "zoo" : q_10
-         mort_multiplier_opt:
+         mort_coeff_opt:
             longname : Option for the form of coefficient applied to mortality terms
             subcategory : 11. zooplankton
             units : non-numeric
