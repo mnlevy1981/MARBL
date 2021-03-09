@@ -1733,6 +1733,7 @@ contains
     use marbl_settings_mod, only : thres_z1_zoo
     use marbl_settings_mod, only : thres_z2_zoo
     use marbl_settings_mod, only : zoo_mort2_exp
+    use marbl_settings_mod, only : mort_multiplier_iopt_sw_and_ice
 
     integer(int_kind),                    intent(in)    :: km
     real(r8),                             intent(in)    :: zt(km)
@@ -1746,6 +1747,8 @@ contains
     integer  :: zoo_ind
     real(r8) :: f_loss_thres(km)
     real(r8) :: C_loss_thres(km)
+    real(r8) :: z_mort
+    real(r8) :: z_mort2
     !-----------------------------------------------------------------------
 
     associate(                                               &
@@ -1757,11 +1760,21 @@ contains
       f_loss_thres(:) = min(max((thres_z2_zoo - zt(:))/(thres_z2_zoo - thres_z1_zoo), c0), c1)
 
       do zoo_ind = 1, zooplankton_cnt
+        select case (zooplankton_settings(zoo_ind)%mort_multiplier_iopt)
+          case (mort_multiplier_iopt_sw_and_ice)
+            ! TODO: these should depend on shortwave and ifrac
+            z_mort = zooplankton_settings(zoo_ind)%z_mort_0
+            z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+          case DEFAULT
+            z_mort = zooplankton_settings(zoo_ind)%z_mort_0
+            z_mort2 = zooplankton_settings(zoo_ind)%z_mort2_0
+        end select
+
         C_loss_thres(:) = f_loss_thres(:) * zooplankton_settings(zoo_ind)%loss_thres
         Zprime(zoo_ind,:) = max(zooC(zoo_ind,:) - C_loss_thres, c0)
 
-        zoo_loss(zoo_ind,:) = (zooplankton_settings(zoo_ind)%z_mort2_0 * Zprime(zoo_ind,:)**zoo_mort2_exp &
-                               + zooplankton_settings(zoo_ind)%z_mort_0  * Zprime(zoo_ind,:)) * Tfunc_zoo(zoo_ind,:)
+        zoo_loss(zoo_ind,:) = (z_mort2 * Zprime(zoo_ind,:)**zoo_mort2_exp &
+                               + z_mort * Zprime(zoo_ind,:)) * Tfunc_zoo(zoo_ind,:)
       end do
 
     end associate
