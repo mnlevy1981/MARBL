@@ -627,14 +627,14 @@
             "mort_coeff_opt": {
                "datatype": "string",
                "default_value": {
-                  "((zooplankton_sname)) == \"zoo\"": "constant_one",
+                  "((zooplankton_sname)) == \"zoo\"": "always_the_same",
                   "default": "UNSET"
                },
-               "longname": "Option for the form of coefficient applied to mortality terms",
+               "longname": "Option for how to determine the zooplankton mortality rate",
                "subcategory": "11. zooplankton",
                "units": "non-numeric",
                "valid_values": [
-                  "constant_one",
+                  "always_the_same",
                   "sw_and_ice_dependent"
                ]
             },

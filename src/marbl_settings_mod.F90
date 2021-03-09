@@ -337,8 +337,8 @@ module marbl_settings_mod
   integer (int_kind), parameter :: temp_func_form_iopt_q10           = 1
   integer (int_kind), parameter :: temp_func_form_iopt_arrhenius     = 2
   integer (int_kind), parameter :: temp_func_form_iopt_power         = 3
-  integer (int_kind), parameter :: mort_coeff_iopt_c1           = 1
-  integer (int_kind), parameter :: mort_coeff_iopt_sw_and_ice   = 2
+  integer (int_kind), parameter :: mort_coeff_iopt_constant          = 1
+  integer (int_kind), parameter :: mort_coeff_iopt_sw_and_ice        = 2
 
   !*****************************************************************************
 
@@ -2951,8 +2951,8 @@ contains
     character(len=char_len) :: log_message
 
     select case (mort_coeff_opt)
-    case ('constant_one')
-       mort_coeff_iopt = mort_coeff_iopt_c1
+    case ('always_the_same')
+       mort_coeff_iopt = mort_coeff_iopt_constant
     case ('sw_and_ice_dependent')
        mort_coeff_iopt = mort_coeff_iopt_sw_and_ice
     case default
