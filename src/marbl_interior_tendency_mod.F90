@@ -1767,11 +1767,12 @@ contains
         select case (zooplankton_settings(zoo_ind)%mort_coeff_iopt)
           case (mort_coeff_iopt_sw_and_ice)
             associate(&
+              ice_frac => interior_tendency_forcings(interior_tendency_forcing_ind%ifrac_id)%field_0d(:), &
               surf_sw => interior_tendency_forcings(interior_tendency_forcing_ind%surf_shortwave_id)%field_1d(1,:), &
-              ice_frac => interior_tendency_forcings(interior_tendency_forcing_ind%ifrac_id)%field_0d(:) &
+              col_frac => interior_tendency_forcings(interior_tendency_forcing_ind%PAR_col_frac_id)%field_1d(1,:) &
               )
               ! TODO: Determine relationship between surf_sw, ice_frac, and mort rates
-              ! if ((sum(surf_sw).le.1._r8) .and. (ice_frac(1).gt.0.9_r8)) then
+              ! if ((sum(surf_sw*col_frac).le.1._r8) .and. (ice_frac(1).gt.0.9_r8)) then
               !   z_mort_0 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort_0
               !   z_mort2_0 = 0.85_r8*zooplankton_settings(zoo_ind)%z_mort2_0
               ! else
