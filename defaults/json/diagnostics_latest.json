@@ -1686,7 +1686,7 @@
          "base_bio_on": ".true."
       },
       "diag_mode": "minimal",
-      "frequency": "never",
+      "frequency": "medium",
       "longname": "Atmospheric Dust Flux",
       "operator": "average",
       "units": "g/cm^2/s",
@@ -2210,7 +2210,7 @@
       "dependencies": {
          "base_bio_on": ".true."
       },
-      "diag_mode": "full",
+      "diag_mode": "minimal",
       "frequency": "medium",
       "longname": "POC Flux into Cell",
       "operator": "average",
@@ -2736,7 +2736,7 @@
       "dependencies": {
          "base_bio_on": ".true."
       },
-      "diag_mode": "full",
+      "diag_mode": "minimal",
       "frequency": "medium",
       "longname": "dust Flux to Sediments",
       "operator": "average",
@@ -3053,7 +3053,7 @@
       "dependencies": {
          "base_bio_on": ".true."
       },
-      "diag_mode": "full",
+      "diag_mode": "minimal",
       "frequency": "medium",
       "longname": "pFe Flux to Sediments",
       "operator": "average",
