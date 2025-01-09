@@ -422,8 +422,8 @@ contains
 
        call compute_scavenging(k, km, marbl_tracer_indices, tracer_local(:,:), &
             POC, P_CaCO3, P_SiO2, dust, Fefree(:), Fe_scavenge_rate(:), &
-            Fe_scavenge(:), Lig_scavenge(:), marbl_status_log, &
-            fesedflux(:), feventflux(:))
+            Fe_scavenge(:), Lig_scavenge(:), fesedflux(:), feventflux(:), &
+            marbl_status_log)
 
        if (marbl_status_log%labort_marbl) then
           call marbl_status_log%log_error_trace('compute_scavenging()', subname)
@@ -2474,7 +2474,7 @@ contains
   subroutine compute_scavenging(k, km, marbl_tracer_indices, &
        tracer_local, POC, P_CaCO3, P_SiO2, dust, &
        Fefree, Fe_scavenge_rate, Fe_scavenge, Lig_scavenge, &
-       marbl_status_log, fesedflux, feventflux)
+       fesedflux, feventflux, marbl_status_log)
 
     use marbl_constants_mod, only : c3, c4
     use marbl_settings_mod , only : Lig_cnt
@@ -2496,9 +2496,9 @@ contains
     real(r8),                           intent(out)   :: Fe_scavenge_rate(km)   ! scavenging rate of iron (1/s)
     real(r8),                           intent(out)   :: Fe_scavenge(km)
     real(r8),                           intent(out)   :: Lig_scavenge(km)
+     real(r8),                          intent(in)    :: fesedflux(km)           ! sedimentary Fe input
+     real(r8),                          intent(in)    :: feventflux(km)          ! vent Fe input
     type(marbl_log_type),               intent(inout) :: marbl_status_log
-     real(r8),            intent(in)    :: fesedflux(km)           ! sedimentary Fe input
-     real(r8),            intent(in)    :: feventflux(km)          ! vent Fe input
 
 
     !-----------------------------------------------------------------------
