@@ -3294,7 +3294,7 @@ contains
 
         if (PON%sflux_out(k) < c0) then
            PON%sflux_out(k) = c0
-           PON%remin(k) = PON%sflux_in(k) + dzr_loc + &
+           PON%remin(k) = PON%sflux_in(k) * dzr_loc + &
               (c1 - PON%gamma) * PON%prod(k)
         end if
 
