@@ -293,6 +293,36 @@
       "units": "mmol/m^3 cm/s",
       "vertical_grid": "none"
    },
+   "((zooplankton_sname))_loss_linear": {
+      "frequency": "never",
+      "longname": "((zooplankton_lname)) Loss (linear component)",
+      "operator": "average",
+      "truncate": true,
+      "units": "mmol/m^3/s",
+      "vertical_grid": "layer_avg"
+   },
+   "((zooplankton_sname))_loss_linear_zint_150m": {
+      "frequency": "never",
+      "longname": "((zooplankton_lname)) Loss (linear component) Vertical Integral, 0-150m",
+      "operator": "average",
+      "units": "mmol/m^3 cm/s",
+      "vertical_grid": "none"
+   },
+   "((zooplankton_sname))_loss_nonlinear": {
+      "frequency": "never",
+      "longname": "((zooplankton_lname)) Loss (nonlinear component)",
+      "operator": "average",
+      "truncate": true,
+      "units": "mmol/m^3/s",
+      "vertical_grid": "layer_avg"
+   },
+   "((zooplankton_sname))_loss_nonlinear_zint_150m": {
+      "frequency": "high",
+      "longname": "((zooplankton_lname)) Loss (nonlinear component) Vertical Integral, 0-150m",
+      "operator": "average",
+      "units": "mmol/m^3 cm/s",
+      "vertical_grid": "none"
+   },
    "((zooplankton_sname))_loss_poc": {
       "frequency": "never",
       "longname": "((zooplankton_lname)) Loss to POC",

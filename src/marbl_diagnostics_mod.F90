@@ -1310,6 +1310,8 @@ contains
         allocate(ind%zoo_loss_zint(zooplankton_cnt))
         allocate(ind%zoo_loss_zint_100m(zooplankton_cnt))
         allocate(ind%zoo_loss_zint_150m(zooplankton_cnt))
+        allocate(ind%zoo_loss_linear_zint_150m(zooplankton_cnt))
+        allocate(ind%zoo_loss_nonlinear_zint_150m(zooplankton_cnt))
         allocate(ind%zoo_loss_poc_zint(zooplankton_cnt))
         allocate(ind%zoo_loss_poc_zint_100m(zooplankton_cnt))
         allocate(ind%zoo_loss_doc_zint(zooplankton_cnt))
@@ -1357,6 +1359,30 @@ contains
         truncate = .false.
         call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
              ind%zoo_loss_zint_150m(n), marbl_status_log)
+        if (marbl_status_log%labort_marbl) then
+          call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
+          return
+        end if
+
+        lname = trim(zooplankton_settings(n)%lname) // ' Loss (linear component) Vertical Integral, 0-150m'
+        sname = trim(zooplankton_settings(n)%sname) // '_loss_linear_zint_150m'
+        units = 'mmol/m^3 cm/s'
+        vgrid = 'none'
+        truncate = .false.
+        call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
+             ind%zoo_loss_linear_zint_150m(n), marbl_status_log)
+        if (marbl_status_log%labort_marbl) then
+          call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
+          return
+        end if
+
+        lname = trim(zooplankton_settings(n)%lname) // ' Loss (nonlinear component) Vertical Integral, 0-150m'
+        sname = trim(zooplankton_settings(n)%sname) // '_loss_nonlinear_zint_150m'
+        units = 'mmol/m^3 cm/s'
+        vgrid = 'none'
+        truncate = .false.
+        call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
+             ind%zoo_loss_nonlinear_zint_150m(n), marbl_status_log)
         if (marbl_status_log%labort_marbl) then
           call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
           return
@@ -2854,6 +2880,8 @@ contains
       ! Zooplankton 3D diags
       if (.not.ind%lconstructed()) then
         allocate(ind%zoo_loss(zooplankton_cnt))
+        allocate(ind%zoo_loss_linear(zooplankton_cnt))
+        allocate(ind%zoo_loss_nonlinear(zooplankton_cnt))
         allocate(ind%zoo_loss_poc(zooplankton_cnt))
         allocate(ind%zoo_loss_doc(zooplankton_cnt))
         allocate(ind%zoo_graze(zooplankton_cnt))
@@ -2871,6 +2899,30 @@ contains
         truncate = .not. lecovars_full_depth_tavg
         call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
              ind%zoo_loss(n), marbl_status_log)
+        if (marbl_status_log%labort_marbl) then
+          call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
+          return
+        end if
+
+        lname    = trim(zooplankton_settings(n)%lname) // ' Loss (linear component)'
+        sname    = trim(zooplankton_settings(n)%sname) // '_loss_linear'
+        units    = 'mmol/m^3/s'
+        vgrid    = 'layer_avg'
+        truncate = .not. lecovars_full_depth_tavg
+        call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
+             ind%zoo_loss_linear(n), marbl_status_log)
+        if (marbl_status_log%labort_marbl) then
+          call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
+          return
+        end if
+
+        lname    = trim(zooplankton_settings(n)%lname) // ' Loss (nonlinear component)'
+        sname    = trim(zooplankton_settings(n)%sname) // '_loss_nonlinear'
+        units    = 'mmol/m^3/s'
+        vgrid    = 'layer_avg'
+        truncate = .not. lecovars_full_depth_tavg
+        call diags%add_diagnostic(lname, sname, units, vgrid, truncate,  &
+             ind%zoo_loss_nonlinear(n), marbl_status_log)
         if (marbl_status_log%labort_marbl) then
           call marbl_logging_add_diagnostics_error(marbl_status_log, sname, subname)
           return
@@ -3924,6 +3976,8 @@ contains
 
     do n = 1, zooplankton_cnt
        diags(ind%zoo_loss(n))%field_3d(:, 1)      = zooplankton_derived_terms%zoo_loss(n,:)
+       diags(ind%zoo_loss_linear(n))%field_3d(:, 1)    = zooplankton_derived_terms%zoo_loss_linear(n,:)
+       diags(ind%zoo_loss_nonlinear(n))%field_3d(:, 1) = zooplankton_derived_terms%zoo_loss_nonlinear(n,:)
        diags(ind%zoo_loss_poc(n))%field_3d(:, 1)  = zooplankton_derived_terms%zoo_loss_poc(n,:)
        diags(ind%zoo_loss_doc(n))%field_3d(:, 1)  = zooplankton_derived_terms%zoo_loss_doc(n,:)
        diags(ind%zoo_graze(n))%field_3d(:, 1)     = zooplankton_derived_terms%zoo_graze(n,:)
@@ -3944,6 +3998,14 @@ contains
 
        call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%zoo_loss(n))%field_3d(:, 1), &
             delta_z, kmt, near_surface_integral=diags(ind%zoo_loss_zint_150m(n))%field_2d(1), &
+            shallow_depth=150.0e2_r8)
+
+            call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%zoo_loss_linear(n))%field_3d(:, 1), &
+            delta_z, kmt, near_surface_integral=diags(ind%zoo_loss_linear_zint_150m(n))%field_2d(1), &
+            shallow_depth=150.0e2_r8)
+
+            call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%zoo_loss_nonlinear(n))%field_3d(:, 1), &
+            delta_z, kmt, near_surface_integral=diags(ind%zoo_loss_nonlinear_zint_150m(n))%field_2d(1), &
             shallow_depth=150.0e2_r8)
 
        call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%zoo_loss_poc(n))%field_3d(:, 1), &
