@@ -567,6 +567,8 @@ module marbl_interface_private_types
     ! Zooplankton 2D diags
     integer(int_kind), allocatable :: zoo_loss_zint(:)
     integer(int_kind), allocatable :: zoo_loss_zint_100m(:)
+    integer(int_kind), allocatable :: zoo_loss_linear_zint_100m(:)
+    integer(int_kind), allocatable :: zoo_loss_nonlinear_zint_100m(:)
     integer(int_kind), allocatable :: zoo_loss_zint_150m(:)
     integer(int_kind), allocatable :: zoo_loss_linear_zint_150m(:)
     integer(int_kind), allocatable :: zoo_loss_nonlinear_zint_150m(:)
@@ -1944,6 +1946,8 @@ contains
       deallocate(this%auto_agg_zint_100m)
       deallocate(this%zoo_loss_zint)
       deallocate(this%zoo_loss_zint_100m)
+      deallocate(this%zoo_loss_linear_zint_100m)
+      deallocate(this%zoo_loss_nonlinear_zint_100m)
       deallocate(this%zoo_loss_zint_150m)
       deallocate(this%zoo_loss_linear_zint_150m)
       deallocate(this%zoo_loss_nonlinear_zint_150m)
