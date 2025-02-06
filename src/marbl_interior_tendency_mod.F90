@@ -1763,11 +1763,11 @@ contains
         C_loss_thres(:) = f_loss_thres(:) * zooplankton_settings(zoo_ind)%loss_thres
         Zprime(zoo_ind,:) = max(zooC(zoo_ind,:) - C_loss_thres, c0)
 
-        zoo_loss_linear(zoo_ind,:) = (zooplankton_settings(zoo_ind)%z_mort_0  * Zprime(zoo_ind,:)) &
+        zoo_loss_linear(zoo_ind,:) = zooplankton_settings(zoo_ind)%z_mort_0  * Zprime(zoo_ind,:) &
                                    * Tfunc_zoo(zoo_ind,:)
-        zoo_loss_nonlinear(zoo_ind,:) = (zooplankton_settings(zoo_ind)%z_mort2_0 * Zprime(zoo_ind,:)**zoo_mort2_exp) &
+        zoo_loss_nonlinear(zoo_ind,:) = zooplankton_settings(zoo_ind)%z_mort2_0 * Zprime(zoo_ind,:)**zoo_mort2_exp &
                                       * Tfunc_zoo(zoo_ind,:)
-        zoo_loss(zoo_ind,:) = (zoo_loss_linear(zoo_ind,:) + zoo_loss_nonlinear(zoo_ind,:))
+        zoo_loss(zoo_ind,:) = zoo_loss_linear(zoo_ind,:) + zoo_loss_nonlinear(zoo_ind,:)
       end do
 
     end associate
