@@ -4487,9 +4487,19 @@ contains
        write(log_message,"(A,E11.3e3)") 'integral(Sed_denitrif) = ', work(1)
        call marbl_status_log%log_error(log_message, subname, ElemInd=1)
        ! autoN
-       call marbl_diagnostics_share_compute_vertical_integrals( &
-            sum(interior_tendencies(marbl_tracer_indices%auto_inds(:)%N_ind,:),dim=1), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
+       if (lvariable_NtoC) then
+        call marbl_diagnostics_share_compute_vertical_integrals( &
+              sum(interior_tendencies(marbl_tracer_indices%auto_inds(:)%N_ind,:),dim=1), &
+              delta_z, kmt, unit_system, full_depth_integral=work(1))
+       else
+        do n = 1, autotroph_cnt
+        work(1) = 0
+        call marbl_diagnostics_share_compute_vertical_integrals( &
+              autotroph_derived_terms%Qn(n,:) * interior_tendencies(marbl_tracer_indices%auto_inds(n)%C_ind,:), &
+              delta_z, kmt, unit_system, full_depth_integral=work(2))
+        work(1) = work(1) + work(2)
+        end do
+       end if
        write(log_message,"(A,E11.3e3)") 'integral(AutoN) = ', work(1)
        call marbl_status_log%log_error(log_message, subname, ElemInd=1)
        ! Each N-fixing autotroph's N
