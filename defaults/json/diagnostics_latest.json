@@ -1588,6 +1588,9 @@
       "vertical_grid": "none"
    },
    "DON_loss_N_bal": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
       "diag_mode": "full",
       "frequency": "never",
       "longname": "DON loss, due to N budget balancing",
@@ -2361,6 +2364,9 @@
       "vertical_grid": "layer_avg"
    },
    "PON_FLUX_((particulate_flux_ref_depth_str))": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
       "diag_mode": "full",
       "frequency": "medium",
       "longname": "PON Flux at ((particulate_flux_ref_depth_str))",
@@ -2369,6 +2375,9 @@
       "vertical_grid": "none"
    },
    "PON_FLUX_IN": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
       "diag_mode": "full",
       "frequency": "medium",
       "longname": "PON Flux into Cell",
@@ -2377,6 +2386,9 @@
       "vertical_grid": "layer_avg"
    },
    "PON_PROD": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
       "diag_mode": "full",
       "frequency": "medium",
       "longname": "PON Production",

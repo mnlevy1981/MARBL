@@ -1120,6 +1120,8 @@ DONr_remin :
    operator : average
    diag_mode : full
 DON_loss_N_bal:
+   dependencies :
+      base_bio_on : .true.
    longname : DON loss, due to N budget balancing
    units: mmol/m^3/s
    vertical_grid : layer_avg
@@ -1282,6 +1284,8 @@ POP_FLUX_((particulate_flux_ref_depth_str)) :
    operator : average
    diag_mode : full
 PON_FLUX_((particulate_flux_ref_depth_str)) :
+   dependencies :
+      base_bio_on : .true.
    longname : PON Flux at ((particulate_flux_ref_depth_str))
    units : mmol/m^3 cm/s
    vertical_grid : none
@@ -1508,6 +1512,8 @@ POP_REMIN_PO4 :
    operator : average
    diag_mode : full
 PON_FLUX_IN :
+   dependencies :
+      base_bio_on : .true.
    longname : PON Flux into Cell
    units : mmol/m^3 cm/s
    vertical_grid : layer_avg
@@ -1515,6 +1521,8 @@ PON_FLUX_IN :
    operator : average
    diag_mode : full
 PON_PROD :
+   dependencies :
+      base_bio_on : .true.
    longname : PON Production
    units : mmol/m^3/s
    vertical_grid : layer_avg
