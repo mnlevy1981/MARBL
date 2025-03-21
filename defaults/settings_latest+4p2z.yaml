@@ -147,17 +147,6 @@ _tracer_list :
          abio_dic_on : .true.
       long_name : Abiotic Dissolved Inorganic Carbon-14
       units : mmol/m^3
-   # Non-living (abiotic only)
-   ABIO_DIC :
-      dependencies :
-         abio_dic_on : .true.
-      long_name : Abiotic Dissolved Inorganic Carbon
-      units : mmol/m^3
-   ABIO_DI14C :
-      dependencies :
-         abio_dic_on : .true.
-      long_name : Abiotic Dissolved Inorganic Carbon-14
-      units : mmol/m^3
    # Non-living (ciso only)
    DI13C :
       dependencies :
