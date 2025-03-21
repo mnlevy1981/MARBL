@@ -797,6 +797,38 @@ general_parms2 :
          default : settings_file
          not ladjust_bury_coeff : settings_file
          SAVED_STATE_VARS_SOURCE == "GCM" : GCM
+   parm_Red_D_C_P :
+      dependencies : base_bio_on
+      longname : Dissolved carbon:phosphorus Redfield Ratio
+      subcategory : 5. general parameters
+      units : unitless
+      datatype : real
+      default_value :
+         default : 117
+         lvariable_NtoC : 112
+   parm_Red_D_N_P :
+      dependencies : base_bio_on
+      longname : Dissolved nitrogen:phosphorus Redfield Ratio
+      subcategory : 5. general parameters
+      units : unitless
+      datatype : real
+      default_value : 16
+   parm_Remin_D_O2_P :
+      dependencies : base_bio_on
+      longname : Dissolved oxygen:phosphorus Redfield Ratio for Remineralization
+      subcategory : 5. general parameters
+      units : unitless
+      datatype : real
+      default_value :
+         default : 138
+         lvariable_NtoC : 112
+   parm_Red_Fe_C :
+      dependencies : base_bio_on
+      longname : iron:carbon Redfield Ratio
+      subcategory : 5. general parameters
+      units : unitless
+      datatype : real
+      default_value : 3e-6
 
 ################################################################################
 #                            Category 2: PFT_counts                            #

@@ -121,21 +121,7 @@ module marbl_settings_mod
   !  BGC parameters that are currently hard-coded
   !---------------------------------------------------------------------
 
-  real(r8), parameter :: &
-       Q_10      =   1.7_r8,                                 & ! factor for temperature dependence (non-dim)
-       parm_Red_D_C_P  = 112.0_r8,                           & ! carbon:phosphorus
-       parm_Red_D_N_P  =  16.0_r8,                           & ! nitrogen:phosphorus
-       parm_Remin_D_O2_P = 112.0_r8,                         & ! oxygen:phosphorus
-       parm_Red_D_O2_P = (parm_Remin_D_O2_P + 32.0_r8),      & ! oxygen:phosphorus
-       parm_Red_P_C_P  = parm_Red_D_C_P,                     & ! carbon:phosphorus
-       parm_Red_D_C_N  = parm_Red_D_C_P/parm_Red_D_N_P,      & ! carbon:nitrogen
-       parm_Red_P_C_N  = parm_Red_D_C_N,                     & ! carbon:nitrogen
-       parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P,     & ! carbon:oxygen **
-       parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P, & ! carbon:oxygen **
-       parm_Red_P_C_O2 = parm_Red_D_C_O2,                    & ! carbon:oxygen **
-       parm_Red_Fe_C   = 3.0e-6_r8,                          & ! iron:carbon
-       parm_Red_D_C_O2_diaz = parm_Red_D_C_P/(parm_Remin_D_O2_P + 2.0_r8)! carbon:oxygen **
-                                                           ! for diazotrophs
+  real(r8), parameter ::  Q_10      =   1.7_r8     ! factor for temperature dependence (non-dim)
 
   ! parameters related to Iron binding ligands
   integer (int_kind), parameter :: Lig_cnt = 1 ! valid values are 1 or 2
@@ -281,7 +267,6 @@ module marbl_settings_mod
        parm_labile_ratio,          & ! fraction of loss to DOC that routed directly to DIC (non-dimensional)
        parm_init_POC_bury_coeff,   & ! initial scale factor for burial of POC
        parm_init_POP_bury_coeff,   & ! initial scale factor for burial of POP
-!       parm_init_PON_bury_coeff,   & ! initial scale factor for burial of PON
        parm_init_bSi_bury_coeff,   & ! initial scale factor burial of bSi
        parm_Fe_scavenge_rate0,     & ! scavenging base rate for Fe (cm^2/ng s/yr)
        parm_Lig_scavenge_rate0,    & ! scavenging base rate for bound ligand (cm^2/ng s/yr)
@@ -308,7 +293,19 @@ module marbl_settings_mod
        zoo_mort2_exp,              & ! Value of power loss exponent for zooplankton
        QCaCO3_max,                 & ! Max CaCO3/C ratio for calcifiers
        f_graze_CaCO3_remin,        & ! Fraction of spCaCO3 grazing which is remineralized in zooplankton guts
-       bury_coeff_rmean_timescale_years
+       bury_coeff_rmean_timescale_years, & ! Running mean time scale for bury coefficients
+       parm_Red_D_C_P,             & ! Dissolved carbon:phosphorus Redfield Ratio
+       parm_Red_D_N_P,             & ! Dissolved nitrogen:phosphorus Redfield Ratio
+       parm_Remin_D_O2_P,          & ! Dissolved oxygen:phosphorus Redfield Ratio for Remineralization
+       parm_Red_D_O2_P,            & ! Dissolved oxygen:phosphorus Redfield Ratio
+       parm_Red_P_C_P,             & ! Particulate carbon:phosphorus Redfield Ratio
+       parm_Red_D_C_N,             & ! Dissolved carbon:nitrogen Redfield Ratio
+       parm_Red_P_C_N,             & ! Particulate carbon:nitrogen Redfield Ratio
+       parm_Red_D_C_O2,            & ! Dissolved carbon:oxygen Redfield Ratio
+       parm_Remin_D_C_O2,          & ! Dissolved carbon:oxygen Redfield Ratio for Remineralization
+       parm_Red_P_C_O2,            & ! Particulate carbon:oxygen Redfield Ratio
+       parm_Red_Fe_C,              & ! iron:carbon Redfield Ratio
+       parm_Red_D_C_O2_diaz          ! Dissolved carbon:oxygen Redfield Ratio for diazotrophs
 
   real(r8), dimension(4), target :: &
        parm_scalelen_z,       & ! depths of prescribed scalelen values
@@ -441,7 +438,6 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     parm_labile_ratio             = 0.94_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_init_POC_bury_coeff      = 2.54_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_init_POP_bury_coeff      = 0.36_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
-!    parm_init_PON_bury_coeff      = 2.54_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_init_bSi_bury_coeff      = 1.53_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_Fe_scavenge_rate0        = 22.0_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_Lig_scavenge_rate0       = 0.015_r8        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
@@ -475,6 +471,10 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     zoo_mort2_exp                 = 1.5_r8          ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     QCaCO3_max                    = 0.40_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     f_graze_CaCO3_remin           = 0.33_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    parm_Red_D_C_P                = 112._r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    parm_Red_D_N_P                = 16._r8          ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    parm_Remin_D_O2_P             = 112._r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    parm_Red_Fe_C                 = 3.0e-6_r8       ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
 
     ! Variables that change depending on unit system
     parm_POC_diss          = parm_POC_diss * unit_system%cm2len                        ! cm -> m in mks
@@ -1261,6 +1261,42 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       units     = 'unitless'
       datatype  = 'real'
       rptr      => f_graze_CaCO3_remin
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'parm_Red_D_C_P'
+      lname     = 'Dissolved carbon:phosphorus Redfield Ratio'
+      units     = 'unitless'
+      datatype  = 'real'
+      rptr      => parm_Red_D_C_P
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'parm_Red_D_N_P'
+      lname     = 'Dissolved nitrogen:phosphorus Redfield Ratio'
+      units     = 'unitless'
+      datatype  = 'real'
+      rptr      => parm_Red_D_N_P
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'parm_Remin_D_O2_P'
+      lname     = 'Dissolved oxygen:phosphorus Redfield Ratio for Remineralization'
+      units     = 'unitless'
+      datatype  = 'real'
+      rptr      => parm_Remin_D_O2_P
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'parm_Red_Fe_C'
+      lname     = 'iron:carbon Redfield Ratio'
+      units     = 'unitless'
+      datatype  = 'real'
+      rptr      => parm_Red_Fe_C
       call this%add_var(sname, lname, units, datatype, category,       &
                           marbl_status_log, rptr=rptr)
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
@@ -2095,6 +2131,44 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     parm_FeLig_scavenge_rate0_yps = yps * parm_FeLig_scavenge_rate0
     call print_single_derived_parm('parm_FeLig_scavenge_rate0', 'parm_FeLig_scavenge_rate0_yps', &
          parm_FeLig_scavenge_rate0_yps, subname, marbl_status_log)
+
+    parm_Red_D_O2_P = parm_Remin_D_O2_P + 32.0_r8
+    call print_single_derived_parm('parm_Remin_D_O2_P', 'parm_Red_D_O2_P', &
+         parm_Red_D_O2_P, subname, marbl_status_log)
+
+    parm_Red_P_C_P  = parm_Red_D_C_P
+    call print_single_derived_parm('parm_Red_D_C_P', 'parm_Red_P_C_P', &
+         parm_Red_P_C_P, subname, marbl_status_log)
+
+    parm_Red_D_C_N  = parm_Red_D_C_P/parm_Red_D_N_P
+    call print_single_derived_parm('parm_Red_D_C_P and parm_Red_D_N_P', 'parm_Red_D_C_N', &
+         parm_Red_D_C_N, subname, marbl_status_log)
+
+    parm_Red_P_C_N  = parm_Red_D_C_N
+    call print_single_derived_parm('parm_Red_D_C_N', 'parm_Red_P_C_N', &
+         parm_Red_P_C_N, subname, marbl_status_log)
+
+    parm_Red_D_C_O2 = parm_Red_D_C_P/parm_Red_D_O2_P
+    call print_single_derived_parm('parm_Red_D_C_P and parm_Red_D_O2_P', 'parm_Red_D_C_O2', &
+         parm_Red_D_C_O2, subname, marbl_status_log)
+
+    parm_Remin_D_C_O2 = parm_Red_D_C_P/parm_Remin_D_O2_P
+    call print_single_derived_parm('parm_Red_D_C_P and parm_Remin_D_O2_P', 'parm_Remin_D_C_O2', &
+         parm_Remin_D_C_O2, subname, marbl_status_log)
+
+    parm_Red_P_C_O2 = parm_Red_D_C_O2
+    call print_single_derived_parm('parm_Red_D_C_O2', 'parm_Red_P_C_O2', &
+         parm_Red_P_C_O2, subname, marbl_status_log)
+
+    if (lvariable_NtoC) then
+      parm_Red_D_C_O2_diaz = parm_Red_D_C_P/(parm_Remin_D_O2_P + 2.0_r8)
+      call print_single_derived_parm('parm_Red_D_C_P and parm_Remin_D_O2_P', &
+           'parm_Red_D_C_O2_diaz', parm_Red_D_C_O2_diaz, subname, marbl_status_log)
+    else
+      parm_Red_D_C_O2_diaz = parm_Red_D_C_P/150.0_r8
+      call print_single_derived_parm('parm_Red_D_C_P', 'parm_Red_D_C_O2_diaz', &
+           parm_Red_D_C_O2_diaz, subname, marbl_status_log)
+    end if
 
     Jint_Ctot_thres = 1.0e9_r8 * mpercm**2 * yps * Jint_Ctot_thres_molpm2pyr
     call print_single_derived_parm('Jint_Ctot_thres_molpm2pyr', 'Jint_Ctot_thres', &
