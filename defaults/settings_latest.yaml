@@ -1002,7 +1002,7 @@ PFT_derived_types :
          SiOpt :
             longname : Si threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1032,7 +1032,7 @@ PFT_derived_types :
          FeOpt :
             longname : Fe threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1065,7 +1065,7 @@ PFT_derived_types :
             dependencies : lvariable_PtoC
             longname : PO4 threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1098,7 +1098,7 @@ PFT_derived_types :
             dependencies : lvariable_NtoC
             longname : N threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34

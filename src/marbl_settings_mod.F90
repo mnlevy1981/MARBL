@@ -1550,7 +1550,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'SiOpt'
       lname    = 'Si threshold in uptake ratio computations'
-      units    = 'nM'
+      units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%SiOpt
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1580,7 +1580,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'FeOpt'
       lname    = 'Fe threshold in uptake ratio computations'
-      units    = 'nM'
+      units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%FeOpt
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1611,7 +1611,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
         write(sname, "(2A)") trim(prefix), 'POpt'
         lname    = 'PO4 threshold in uptake ratio computations'
-        units    = 'nM'
+        units    = 'nmol/cm^3'
         datatype = 'real'
         rptr     => autotroph_settings(n)%POpt
         call this%add_var(sname, lname, units, datatype, category,     &
@@ -1655,7 +1655,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
         write(sname, "(2A)") trim(prefix), 'NOpt'
         lname    = 'N threshold in uptake ratio computations'
-        units    = 'nM'
+        units    = 'nmol/cm^3'
         datatype = 'real'
         rptr     => autotroph_settings(n)%NOpt
         call this%add_var(sname, lname, units, datatype, category,     &
