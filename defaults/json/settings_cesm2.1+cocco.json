@@ -1614,6 +1614,44 @@
          "longname": "Source of initial burial coefficient",
          "subcategory": "4. config strings",
          "units": "unitless"
+      },
+      "parm_Red_D_C_P": {
+         "datatype": "real",
+         "default_value": {
+            "default": 117,
+            "lvariable_NtoC": 112
+         },
+         "dependencies": "base_bio_on",
+         "longname": "Dissolved carbon:phosphorus Redfield Ratio",
+         "subcategory": "5. general parameters",
+         "units": "unitless"
+      },
+      "parm_Red_D_N_P": {
+         "datatype": "real",
+         "default_value": 16,
+         "dependencies": "base_bio_on",
+         "longname": "Dissolved nitrogen:phosphorus Redfield Ratio",
+         "subcategory": "5. general parameters",
+         "units": "unitless"
+      },
+      "parm_Red_Fe_C": {
+         "datatype": "real",
+         "default_value": "3e-6",
+         "dependencies": "base_bio_on",
+         "longname": "iron:carbon Redfield Ratio",
+         "subcategory": "5. general parameters",
+         "units": "unitless"
+      },
+      "parm_Remin_D_O2_P": {
+         "datatype": "real",
+         "default_value": {
+            "default": 138,
+            "lvariable_NtoC": 112
+         },
+         "dependencies": "base_bio_on",
+         "longname": "Dissolved oxygen:phosphorus Redfield Ratio for Remineralization",
+         "subcategory": "5. general parameters",
+         "units": "unitless"
       }
    },
    "tracer_dependent": {
