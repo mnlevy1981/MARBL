@@ -299,10 +299,10 @@ contains
          ph_prev_alt_co2_col => saved_state%state(saved_state_ind%ph_alt_co2_col)%field_3d(:,1), &
 
          ! Hard-coding in that there is only 1 column passed in at a time!
-         dust_flux_in        => interior_tendency_forcings(interior_tendency_forcing_indices%dustflux_id)%field_0d(1),   &
-         potemp              => interior_tendency_forcings(interior_tendency_forcing_indices%potemp_id)%field_1d(1,:),   &
-         pressure            => interior_tendency_forcings(interior_tendency_forcing_indices%pressure_id)%field_1d(1,:), &
-         salinity            => interior_tendency_forcings(interior_tendency_forcing_indices%salinity_id)%field_1d(1,:), &
+         dust_flux_in    => interior_tendency_forcings(interior_tendency_forcing_indices%dustflux_id)%field_0d(1),       &
+         potemp          => interior_tendency_forcings(interior_tendency_forcing_indices%potemp_id)%field_1d(1,:),       &
+         pressure        => interior_tendency_forcings(interior_tendency_forcing_indices%pressure_id)%field_1d(1,:),     &
+         salinity        => interior_tendency_forcings(interior_tendency_forcing_indices%salinity_id)%field_1d(1,:),     &
          fesedflux       => interior_tendency_forcings(interior_tendency_forcing_indices%fesedflux_id)%field_1d(1,:),    &
          feRedsedflux    => interior_tendency_forcings(interior_tendency_forcing_indices%feRedsedflux_id)%field_1d(1,:), &
          feventflux      => interior_tendency_forcings(interior_tendency_forcing_indices%feventflux_id)%field_1d(1,:),   &
