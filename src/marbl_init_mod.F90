@@ -281,7 +281,6 @@ contains
     use marbl_settings_mod, only : ladjust_bury_coeff
     use marbl_settings_mod, only : parm_init_POC_bury_coeff
     use marbl_settings_mod, only : parm_init_POP_bury_coeff
-!    use marbl_settings_mod, only : parm_init_PON_bury_coeff
     use marbl_settings_mod, only : parm_init_bSi_bury_coeff
     use marbl_interface_private_types, only : marbl_particulate_share_type
 
@@ -302,7 +301,6 @@ contains
        if (init_bury_coeff_opt == 'settings_file') then
           marbl_particulate_share%POC_bury_coeff = parm_init_POC_bury_coeff
           marbl_particulate_share%POP_bury_coeff = parm_init_POP_bury_coeff
-!          marbl_particulate_share%PON_bury_coeff = parm_init_PON_bury_coeff
           marbl_particulate_share%bSi_bury_coeff = parm_init_bSi_bury_coeff
        else
           call marbl_status_log%log_error("ladjust_bury_coeff=.false., init_bury_coeff_opt='GCM' not implemented", subname)
@@ -632,9 +630,7 @@ contains
       interior_tendency_forcings(:)%metadata%varname = ''
 
       ! Surface fluxes that influence interior forcing
-
       do id=1,size(interior_tendency_forcings)
-
         found = .false.
         ! Dust Flux
         if (id .eq. ind%dustflux_id) then

@@ -4322,52 +4322,6 @@ contains
             'abs(Jint_Ctot)=', abs(diags(ind%Jint_Ctot)%field_2d(1)), &
             ' exceeds Jint_Ctot_thres=', Jint_Ctot_thres
        call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-
-       ! --- BEGIN NEW CODE ---
-       ! Print individual components of the integral
-       ! DIC
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(dic_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(DIC) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! DOC
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(doc_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(DOC) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! DOCr
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(docr_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(DOCr) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! zooC
-       call marbl_diagnostics_share_compute_vertical_integrals( &
-            sum(interior_tendencies(marbl_tracer_indices%zoo_inds(:)%C_ind,:), dim=1), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(zooC) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! autoC
-       call marbl_diagnostics_share_compute_vertical_integrals( &
-            sum(interior_tendencies(marbl_tracer_indices%auto_inds(:)%C_ind,:),dim=1), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(autoC) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! Each calcifying autotroph's CaCO3
-       do auto_ind = 1, autotroph_cnt
-          n = marbl_tracer_indices%auto_inds(auto_ind)%CaCO3_ind
-          if (n .gt. 0) then
-             call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(n,:), &
-                  delta_z, kmt, unit_system, full_depth_integral=work(1))
-             write(log_message,"(A,I0,A,E11.3e3)") 'integral(auto(', auto_ind, ')%CaCO3) = ', work(1)
-             call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-          end if
-       end do
-       ! --- Levy new ---
-       write(log_message,"(A,E11.3e3)") 'sum(POC%sed_loss) = ', sum(POC%sed_loss)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       write(log_message,"(A,E11.3e3)") 'sum(P_CaCO3%sed_loss) = ', sum(P_CaCO3%sed_loss)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! --- END NEW CODE ---
        return
     end if
 
@@ -4448,70 +4402,6 @@ contains
             'abs(Jint_Ntot)=', abs(diags(ind%Jint_Ntot)%field_2d(1)), &
             ' exceeds Jint_Ntot_thres=', Jint_Ntot_thres
        call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-              ! --- BEGIN NEW CODE ---
-       ! Print individual components of the integral
-       ! NO3
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(no3_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(NO3) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! NH4
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(nh4_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(NH4) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! DON
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(don_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(DON) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! DONr
-       call marbl_diagnostics_share_compute_vertical_integrals(interior_tendencies(donr_ind,:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(DONR) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! zooN
-       call marbl_diagnostics_share_compute_vertical_integrals( &
-            Q * sum(interior_tendencies(marbl_tracer_indices%zoo_inds(:)%C_ind,:), dim=1), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(zooN) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! Denitrif
-       call marbl_diagnostics_share_compute_vertical_integrals(denitrif(:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(Denitrif) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! Sed Denitrif
-       call marbl_diagnostics_share_compute_vertical_integrals(sed_denitrif(:), &
-            delta_z, kmt, unit_system, full_depth_integral=work(1))
-       write(log_message,"(A,E11.3e3)") 'integral(Sed_denitrif) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! autoN
-       if (lvariable_NtoC) then
-        call marbl_diagnostics_share_compute_vertical_integrals( &
-              sum(interior_tendencies(marbl_tracer_indices%auto_inds(:)%N_ind,:),dim=1), &
-              delta_z, kmt, unit_system, full_depth_integral=work(1))
-       else
-        do n = 1, autotroph_cnt
-        work(1) = 0
-        call marbl_diagnostics_share_compute_vertical_integrals( &
-              autotroph_derived_terms%Qn(n,:) * interior_tendencies(marbl_tracer_indices%auto_inds(n)%C_ind,:), &
-              delta_z, kmt, unit_system, full_depth_integral=work(2))
-        work(1) = work(1) + work(2)
-        end do
-       end if
-       write(log_message,"(A,E11.3e3)") 'integral(AutoN) = ', work(1)
-       call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-       ! Each N-fixing autotroph's N
-       do n = 1, autotroph_cnt
-          if (autotroph_settings(n)%Nfixer) then
-             call marbl_diagnostics_share_compute_vertical_integrals(autotroph_derived_terms%Nfix(n,:), &
-                  delta_z, kmt, unit_system, full_depth_integral=work(1))
-             write(log_message,"(A,I0,A,E11.3e3)") 'integral(auto(', n, ')%Nfix) = ', work(1)
-             call marbl_status_log%log_error(log_message, subname, ElemInd=1)
-          end if
-       end do
-       ! --- END NEW CODE ---
        return
     end if
 

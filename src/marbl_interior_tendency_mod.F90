@@ -51,7 +51,6 @@ module marbl_interior_tendency_mod
   use marbl_settings_mod, only : autotroph_settings
   use marbl_settings_mod, only : zooplankton_settings
   use marbl_settings_mod, only : dust_to_Fe
-  !use marbl_settings_mod, only : denitrif_C_N
   use marbl_settings_mod, only : parm_Red_Fe_C
   use marbl_settings_mod, only : Q
   use marbl_settings_mod, only : parm_scalelen_z
@@ -421,8 +420,8 @@ contains
     do k = 1, km
 
        call compute_scavenging(k, km, marbl_tracer_indices, tracer_local(:,:), &
-            POC, P_CaCO3, P_SiO2, dust, Fefree(:), Fe_scavenge_rate(:), &
-            Fe_scavenge(:), Lig_scavenge(:), fesedflux(:), feventflux(:), &
+            POC, P_CaCO3, P_SiO2, fesedflux(:), feventflux(:), dust, &
+            Fefree(:), Fe_scavenge_rate(:), Fe_scavenge(:), Lig_scavenge(:), &
             marbl_status_log)
 
        if (marbl_status_log%labort_marbl) then
@@ -1927,6 +1926,7 @@ contains
   end subroutine compute_Zprime
 
   !***********************************************************************
+
   subroutine compute_grazing(km, Tfunc_zoo, zooplankton_local, zooplankton_derived_terms, autotroph_derived_terms)
 
     !-----------------------------------------------------------------------
@@ -2226,13 +2226,11 @@ contains
         !   - zooplankton linear and quadratic losses get routed to DOC, DIC, and POC
         !   - basal respiration losses only contribute to DIC
         !-----------------------------------------------------------------------
-
         do zoo_ind = 1, zooplankton_cnt
           zoo_loss_poc(zoo_ind,k) = f_zoo_detr(zoo_ind,k) * zoo_loss_bulk(zoo_ind,k)
           zoo_loss_doc(zoo_ind,k) = (c1 - parm_labile_ratio) * (c1 - f_zoo_detr(zoo_ind,k)) * zoo_loss_bulk(zoo_ind,k)
           zoo_loss_dic(zoo_ind,k) = (parm_labile_ratio * (c1 - f_zoo_detr(zoo_ind,k)) * zoo_loss_bulk(zoo_ind,k)) + &
                                     zoo_loss_basal(zoo_ind,k)
-
         end do
 
         !-----------------------------------------------------------------------
@@ -2240,7 +2238,6 @@ contains
         ! sinking POP is routed as POC * autoQp, but reduced where insuffient P is available
         ! The remaining P is split between DOP and PO4.
         !-----------------------------------------------------------------------
-
         do auto_ind = 1, autotroph_cnt
           remaining_P_pop(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
                                     * Qp(auto_ind,k)
@@ -2260,19 +2257,15 @@ contains
           ! increase fraction routed to dop, relative to doc 0.06, 0.94
           !    better matches DOP obs with var P quotas
           !-----------------------------------------------------------------------
-
           remaining_P_dop(auto_ind,k) = f_toDOP * remaining_P
           remaining_P_dip(auto_ind,k) = (c1 - f_toDOP) * remaining_P
-
         end do
-
 
         !-----------------------------------------------------------------------
         ! We ensure the zooplankton pool gets its Fequota, fixed Fe/C ratio,
         ! sinking pfe is routed as POC * autoQfe, but is reduced where insuffient Fe is available
         ! The remaining Fe is routed to dFe.
         !-----------------------------------------------------------------------
-
         do auto_ind = 1, autotroph_cnt
           remaining_Fe_pfe(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
                                     * Qfe(auto_ind,k)
@@ -2287,9 +2280,7 @@ contains
             remaining_Fe_pfe(auto_ind,k) = remaining_Fe_pfe(auto_ind,k) + remaining_Fe
             remaining_Fe = c0
           endif
-
           remaining_Fe_dfe(auto_ind,k) = remaining_Fe
-
         end do
 
         !-----------------------------------------------------------------------
@@ -2297,7 +2288,6 @@ contains
         ! sinking PON is routed as POC * autoQn, but reduced where insuffient N is available
         ! The remaining N is split between DON and NH4.
         !-----------------------------------------------------------------------
-
         do auto_ind = 1, autotroph_cnt
           remaining_N_pon(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
                                     * Qn(auto_ind,k)
@@ -2317,15 +2307,10 @@ contains
           ! increase fraction routed to don, relative to doc 0.06, 0.94
           !    better matches DON obs with var N quotas
           !-----------------------------------------------------------------------
-
           remaining_N_don(auto_ind,k) = f_toDON * remaining_N
           remaining_N_din(auto_ind,k) = (c1 - f_toDON) * remaining_N
-
         end do
-
       end do
-
-
     end associate
 
   end subroutine compute_routing
@@ -2471,10 +2456,9 @@ contains
 
   !***********************************************************************
 
-  subroutine compute_scavenging(k, km, marbl_tracer_indices, &
-       tracer_local, POC, P_CaCO3, P_SiO2, dust, &
-       Fefree, Fe_scavenge_rate, Fe_scavenge, Lig_scavenge, &
-       fesedflux, feventflux, marbl_status_log)
+  subroutine compute_scavenging(k, km, marbl_tracer_indices, tracer_local, POC, P_CaCO3, &
+       P_SiO2, fesedflux, feventflux, dust, Fefree, Fe_scavenge_rate, Fe_scavenge, &
+       Lig_scavenge, marbl_status_log)
 
     use marbl_constants_mod, only : c3, c4
     use marbl_settings_mod , only : Lig_cnt
@@ -2491,13 +2475,13 @@ contains
     type(column_sinking_particle_type), intent(in)    :: POC
     type(column_sinking_particle_type), intent(in)    :: P_CaCO3
     type(column_sinking_particle_type), intent(in)    :: P_SiO2
+    real(r8),                           intent(in)    :: fesedflux(km)           ! sedimentary Fe input
+    real(r8),                           intent(in)    :: feventflux(km)          ! vent Fe input
     type(column_sinking_particle_type), intent(inout) :: dust
     real(r8),                           intent(out)   :: Fefree(km)
     real(r8),                           intent(out)   :: Fe_scavenge_rate(km)   ! scavenging rate of iron (1/s)
     real(r8),                           intent(out)   :: Fe_scavenge(km)
     real(r8),                           intent(out)   :: Lig_scavenge(km)
-     real(r8),                          intent(in)    :: fesedflux(km)           ! sedimentary Fe input
-     real(r8),                          intent(in)    :: feventflux(km)          ! vent Fe input
     type(marbl_log_type),               intent(inout) :: marbl_status_log
 
 

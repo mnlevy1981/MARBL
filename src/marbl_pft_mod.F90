@@ -99,7 +99,7 @@ module marbl_pft_mod
   !****************************************************************************
 
   ! Public parameters
-  real(r8), public, parameter :: Qp_zoo = c1 / 117.0_r8      ! P/C ratio (mmol/mmol) zoo
+  real(r8), public, parameter :: Qp_zoo = c1 / 117.0_r8 ! P/C ratio (mmol/mmol) zoo
 
   ! grazing functions
   integer(int_kind), public, parameter :: grz_fnc_michaelis_menten = 1
@@ -175,7 +175,7 @@ contains
         self%kNO3            = 0.5_r8            ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
         self%kNH4            = 0.05_r8           ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
         self%kSiO3           = 0.7_r8            ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
-        self%Qp_fixed        =  Qp_zoo           ! only used for lvariable_PtoC=.false.
+        self%Qp_fixed        = Qp_zoo            ! only used for lvariable_PtoC=.false.
         self%SiOpt           = 10.0_r8           ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
         self%gQfe_max        = 30.0e-6_r8        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod
         self%gQfe_min        = 2.5e-6_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE in marbl_settings_mod

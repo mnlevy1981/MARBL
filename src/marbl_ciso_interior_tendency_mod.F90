@@ -550,11 +550,11 @@ contains
 
        call compute_particulate_terms(k, marbl_domain, bot_flux_to_tend(:), tracer_local(:,:),   &
             marbl_tracer_indices, interior_tendency_share, marbl_particulate_share, unit_system, &
-            PO13C, P_Ca13CO3, denitrif_C_N(:))
+            denitrif_C_N(:), PO13C, P_Ca13CO3)
 
        call compute_particulate_terms(k, marbl_domain, bot_flux_to_tend(:), tracer_local(:,:),   &
             marbl_tracer_indices, interior_tendency_share, marbl_particulate_share, unit_system, &
-            PO14C, P_Ca14CO3, denitrif_C_N(:))
+            denitrif_C_N(:), PO14C, P_Ca14CO3)
 
        !-----------------------------------------------------------------------
        ! Update interior_tendencies for the 7 carbon pools for each Carbon isotope
@@ -1053,8 +1053,8 @@ contains
   !***********************************************************************
 
   subroutine compute_particulate_terms(k, domain, bot_flux_to_tend, tracer_local, marbl_tracer_indices, &
-             interior_tendency_share, marbl_particulate_share, unit_system, POC_ciso, P_CaCO3_ciso, &
-             denitrif_C_N)
+             interior_tendency_share, marbl_particulate_share, unit_system, denitrif_C_N, POC_ciso, &
+             P_CaCO3_ciso)
 
     !----------------------------------------------------------------------------------------
     !  Compute outgoing fluxes and remineralization terms for Carbon isotopes.
@@ -1082,9 +1082,9 @@ contains
     type(marbl_interior_tendency_share_type), intent(in)    :: interior_tendency_share
     type(marbl_particulate_share_type),       intent(in)    :: marbl_particulate_share
     type(unit_system_type),                   intent(in)    :: unit_system
+    real(r8),                                 intent(in)    :: denitrif_C_N(:)
     type(column_sinking_particle_type),       intent(inout) :: POC_ciso          ! base units = nmol particulate organic Carbon isotope
     type(column_sinking_particle_type),       intent(inout) :: P_CaCO3_ciso      ! base units = nmol CaCO3 Carbon isotope
-    real(r8),                                 intent(in)    :: denitrif_C_N(:)
 
     !-----------------------------------------------------------------------
     !  local variables
