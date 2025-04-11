@@ -208,7 +208,7 @@ module marbl_settings_mod
   !  marbl_settings_define_PFT_derived_types, or marbl_settings_define_tracer_dependent
   !
   ! CESM NOTE: defaults values are set in the corresponding marbl_settings_set_defaults routines
-  !            but may be overridden at run time through a put_setting() call (use user_nl_pop
+  !            but may be overridden at run time through a put_setting() call (use user_nl_marbl
   !            to change parameter value)
   !---------------------------------------------------------------------------------------------
 
