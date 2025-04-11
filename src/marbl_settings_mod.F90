@@ -139,7 +139,7 @@ module marbl_settings_mod
 
                                           !    production and CaCO3 production
       f_graze_si_remin      = 0.22_r8,  & ! fraction of diatom Si grazing which is remin
-      f_toDON               = 0.05_r8,  & ! fraction of reamining_N to DON
+      f_toDON               = 0.05_r8,  & ! fraction of remaining_N to DON
       f_toDOP               = 0.15_r8     ! fraction of remaining_P to DOP
 
   ! fixed ratios
