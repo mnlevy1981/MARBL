@@ -2302,9 +2302,9 @@ graze_((autotroph_sname))_((zooplankton_sname))_zint_100m :
    diag_mode : full
 ((autotroph_sname))_Qp :
    dependencies : # NOTE: POP treats this as a dependency, though MARBL defines
-                 #       these diagnostics independent of lvariable_PtoC; my
-                 #       thought is that we don't need these diagnostics with
-                 #       fixed P:C so I'd like to update the fortran as well
+                  #       these diagnostics independent of lvariable_PtoC; my
+                  #       thought is that we don't need these diagnostics with
+                  #       fixed P:C so I'd like to update the fortran as well
       lvariable_PtoC : .true.
    longname : ((autotroph_lname)) P:C ratio
    units : 1
@@ -2315,9 +2315,9 @@ graze_((autotroph_sname))_((zooplankton_sname))_zint_100m :
    diag_mode : full
 ((autotroph_sname))_Qn :
    dependencies : # NOTE: POP treats this as a dependency, though MARBL defines
-                 #       these diagnostics independent of lvariable_NtoC; my
-                 #       thought is that we don't need these diagnostics with
-                 #       fixed N:C so I'd like to update the fortran as well
+                  #       these diagnostics independent of lvariable_NtoC; my
+                  #       thought is that we don't need these diagnostics with
+                  #       fixed N:C so I'd like to update the fortran as well
       lvariable_NtoC : .true.
    longname : ((autotroph_lname)) N:C ratio
    units : 1
