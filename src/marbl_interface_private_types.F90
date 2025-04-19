@@ -255,7 +255,6 @@ module marbl_interface_private_types
 
      real(r8)              :: POC_bury_coeff
      real(r8)              :: POP_bury_coeff
-     real(r8)              :: PON_bury_coeff
      real(r8)              :: bSi_bury_coeff
    contains
      procedure, public :: construct => marbl_particulate_share_constructor

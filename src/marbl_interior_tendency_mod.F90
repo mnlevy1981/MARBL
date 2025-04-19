@@ -421,7 +421,7 @@ contains
 
        call compute_scavenging(k, km, marbl_tracer_indices, tracer_local(:,:), &
             POC, P_CaCO3, P_SiO2, fesedflux(:), feventflux(:), dust, &
-            Fefree(:), Fe_scavenge_rate(:), Fe_scavenge(:), Lig_scavenge(:), &
+            Fefree(k), Fe_scavenge_rate(k), Fe_scavenge(k), Lig_scavenge(k), &
             marbl_status_log)
 
        if (marbl_status_log%labort_marbl) then
@@ -430,7 +430,7 @@ contains
        end if
 
        call compute_large_detritus_prod(k, domain, marbl_tracer_indices, zooplankton_derived_terms, &
-            autotroph_derived_terms, Fe_scavenge(:),                    &
+            autotroph_derived_terms, Fe_scavenge(k),                    &
             POC, POP, PON, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, P_iron,    &
             dissolved_organic_matter%DOP_loss_P_bal(k),                 &
             dissolved_organic_matter%DON_loss_N_bal(k), marbl_status_log)
@@ -1491,7 +1491,7 @@ contains
          PCPhoto   => autotroph_derived_terms%PCPhoto(:,:),   &
          photoC    => autotroph_derived_terms%photoC(:,:),    &
          photoacc  => autotroph_derived_terms%photoacc(:,:),  &
-         gQn       => autotroph_derived_terms%gQn(:, :)       & ! output phyto C/N
+         gQn       => autotroph_derived_terms%gQn(:, :)       &
          )
 
       do auto_ind = 1, autotroph_cnt
@@ -1726,9 +1726,9 @@ contains
          photoC   => autotroph_derived_terms%photoC(:, :),   & ! input
          NO3_V    => autotroph_derived_terms%NO3_V(:, :),    & ! input
          NH4_V    => autotroph_derived_terms%NH4_V(:, :),    & ! input
+         gQn      => autotroph_derived_terms%gQn(:, :),      & ! input
          Nfix     => autotroph_derived_terms%Nfix(:, :),     & ! output total Nitrogen fixation (mmol N/m^3/sec)
-         Nexcrete => autotroph_derived_terms%Nexcrete(:, :), & ! output fixed N excretion
-         gQn      => autotroph_derived_terms%gQn(:, :)       & ! output phyto C/N
+         Nexcrete => autotroph_derived_terms%Nexcrete(:, :)  & ! output fixed N excretion
          )
 
       do auto_ind = 1, autotroph_cnt
@@ -2034,9 +2034,9 @@ contains
             do zoo_ind2 = 1, grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind_cnt
               zoo_ind = grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind(zoo_ind2)
               if (density1 > c0) then
-              work1 = work1 + (Zprime(zoo_ind,k)/density1) * Zprime(zoo_ind,k)
+                work1 = work1 + (Zprime(zoo_ind,k)/density1) * Zprime(zoo_ind,k)
               else
-              work1 = work1 + Zprime(zoo_ind,k)
+                work1 = work1 + Zprime(zoo_ind,k)
               end if
             end do
 
@@ -2478,10 +2478,10 @@ contains
     real(r8),                           intent(in)    :: fesedflux(km)           ! sedimentary Fe input
     real(r8),                           intent(in)    :: feventflux(km)          ! vent Fe input
     type(column_sinking_particle_type), intent(inout) :: dust
-    real(r8),                           intent(out)   :: Fefree(km)
-    real(r8),                           intent(out)   :: Fe_scavenge_rate(km)   ! scavenging rate of iron (1/s)
-    real(r8),                           intent(out)   :: Fe_scavenge(km)
-    real(r8),                           intent(out)   :: Lig_scavenge(km)
+    real(r8),                           intent(out)   :: Fefree
+    real(r8),                           intent(out)   :: Fe_scavenge_rate       ! scavenging rate of iron (1/s)
+    real(r8),                           intent(out)   :: Fe_scavenge
+    real(r8),                           intent(out)   :: Lig_scavenge
     type(marbl_log_type),               intent(inout) :: marbl_status_log
 
 
@@ -2551,11 +2551,11 @@ contains
           !
           ! the positive root arises from + in the quadratic formula,
           ! because p2 (= KFeLig1) is positive
-          Fefree(k) = (-p1 + sqrt(p1**2 - c4*p2*p0))/(c2*p2)
+          Fefree = (-p1 + sqrt(p1**2 - c4*p2*p0))/(c2*p2)
 
-          FeLig1 = KFeLig1 * Fefree(k) * Lig_loc(k) / (c1 + KFeLig1 * Fefree(k))
+          FeLig1 = KFeLig1 * Fefree * Lig_loc(k) / (c1 + KFeLig1 * Fefree)
         else ! Fe_loc(k) == 0
-          Fefree(k) = c0
+          Fefree = c0
           FeLig1 = c0
         end if
         FeLig2 = c0
@@ -2595,24 +2595,24 @@ contains
           p0 = -Fe_loc(k)
 
           ! initial iterate for Newton's method
-          Fefree(k) = Fe_loc(k)
+          Fefree = Fe_loc(k)
 
           Newton_convergence = .false.
 
           do n = 1,30 ! maximum number of iterations
             ! Horner's method to evaluate p0 + p1*Fefree + p2*Fefree^2 + p3*Fefree^3
-            Fefree_fcn  = p0 + Fefree(k)*(p1 + Fefree(k)*(p2 + p3*Fefree(k)))
+            Fefree_fcn  = p0 + Fefree*(p1 + Fefree*(p2 + p3*Fefree))
 
             ! Horner's method to evaluate p1 + (c2*p2)*Fefree + (c3*p3)*Fefree^2
-            dFefree_fcn = p1 + Fefree(k)*((c2*p2) + (c3*p3)*Fefree(k))
+            dFefree_fcn = p1 + Fefree*((c2*p2) + (c3*p3)*Fefree)
 
             ! Newton's method
             Fefree_inc  = Fefree_fcn / dFefree_fcn
-            Fefree(k)      = Fefree(k) - Fefree_inc
+            Fefree      = Fefree - Fefree_inc
 
             ! Newton's method converges quadratically, once you are close to the solution.
             ! So if relative change in Fefree is small, then we have converged.
-            if (abs(Fefree_inc) .le. 1.0e-9_r8 * Fefree(k)) then
+            if (abs(Fefree_inc) .le. 1.0e-9_r8 * Fefree) then
               Newton_convergence = .true.
               exit
             end if
@@ -2631,10 +2631,10 @@ contains
             return
           end if
 
-          FeLig1 = KFeLig1 * (Fefree(k) * Lig_loc(k)) / (c1 + KFeLig1*Fefree(k))
-          FeLig2 = KFeLig2 * (Fefree(k) * Lig_loc(k)) / (c1 + KFeLig2*Fefree(k))
+          FeLig1 = KFeLig1 * (Fefree * Lig_loc(k)) / (c1 + KFeLig1*Fefree)
+          FeLig2 = KFeLig2 * (Fefree * Lig_loc(k)) / (c1 + KFeLig2*Fefree)
         else ! Fe_loc(k) == 0
-          Fefree(k) = c0
+          Fefree = c0
           FeLig1 = c0
           FeLig2 = c0
         end if
@@ -2667,12 +2667,12 @@ contains
 
 
 
-      Fe_scavenge_rate(k) = parm_Fe_scavenge_rate0_yps * sinking_mass
+      Fe_scavenge_rate    = parm_Fe_scavenge_rate0_yps * sinking_mass
       Lig_scavenge_rate   = parm_Lig_scavenge_rate0_yps * sinking_mass
       FeLig_scavenge_rate = parm_FeLig_scavenge_rate0_yps * sinking_mass
 
-      Lig_scavenge(k) = FeLig1 * Lig_scavenge_rate
-      Fe_scavenge(k)  = Fefree(k) * Fe_scavenge_rate(k) + FeLig1 * FeLig_scavenge_rate
+      Lig_scavenge = FeLig1 * Lig_scavenge_rate
+      Fe_scavenge  = Fefree * Fe_scavenge_rate + FeLig1 * FeLig_scavenge_rate
 
     end associate
 
@@ -2701,7 +2701,7 @@ contains
      type(marbl_tracer_index_type),        intent(in)    :: marbl_tracer_indices
      type(zooplankton_derived_terms_type), intent(in)    :: zooplankton_derived_terms
      type(autotroph_derived_terms_type),   intent(in)    :: autotroph_derived_terms
-     real(r8),                             intent(in)    :: Fe_scavenge(domain%km)
+     real(r8),                             intent(in)    :: Fe_scavenge
      type(column_sinking_particle_type),   intent(inout) :: POC
      type(column_sinking_particle_type),   intent(inout) :: POP
      type(column_sinking_particle_type),   intent(inout) :: PON
@@ -2793,7 +2793,7 @@ contains
      !-----------------------------------------------------------------------
 
      P_iron%prod(k) = (sum(zoo_loss_poc(:)) + sum(zoo_graze_poc(:))) * Qfe_zoo &
-                  + Fe_scavenge(k) + sum(remaining_Fe_pfe(:))
+                  + Fe_scavenge + sum(remaining_Fe_pfe(:))
 
 
      !-----------------------------------------------------------------------
@@ -3020,7 +3020,6 @@ contains
      if (k <= column_kmt) then
 
         dzr_loc    = c1 / dz_loc
-        dzr_mod = ((dz_loc * unit_system%len2m)**(-0.343_r8))
 
         poc_diss   = POC%diss
         sio2_diss  = P_SiO2%diss
@@ -3084,8 +3083,6 @@ contains
 
         P_SiO2%hflux_out(k) = P_SiO2%hflux_in(k) * DECAY_Hard + &
              P_SiO2%prod(k) * (P_SiO2%gamma * dz_loc)
-
-
 
         dust%sflux_out(k) = dust%sflux_in(k) * decay_dust
 
@@ -3207,7 +3204,7 @@ contains
         !   it accounts for the increasing sinking speed of particles with depth
         !      less desorption with depth (as mean sinking speed increases)
         !-----------------------------------------------------------------------
-
+        dzr_mod = (dz_loc * unit_system%len2m)**(-0.343_r8)
         P_iron%remin(k) = P_iron%remin(k) +                &
              (P_iron%sflux_in(k) * parm_Fe_desorption_rate0 * dzr_mod)
 
@@ -3742,14 +3739,6 @@ contains
         work = min(max(work, c0), c1)
         denitrif(k) = work * ((DOC_remin(k) + DOCr_remin(k) + POC_remin(k) * (c1 - POCremin_refract) &
                  - other_remin(k)) / denitrif_C_N(k)  - sed_denitrif(k))
-
-        ! scale down denitrif if computed rate would consume all NO3 in 10 days
-  !      if (NO3_loc(k) < ((c10*spd)*(denitrif(k)+sed_denitrif(k)))) then
-  !        work = NO3_loc(k) / ((c10*spd)*(denitrif(k)+sed_denitrif(k)))
-  !        denitrif(k) = denitrif(k) * work
-  !        sed_denitrif(k) = sed_denitrif(k) * work
-  !      end if
-
       end do
 
     end associate

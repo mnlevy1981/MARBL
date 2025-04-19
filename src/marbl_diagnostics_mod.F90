@@ -3315,21 +3315,21 @@ contains
          fe_scavenge, fe_scavenge_rate, Lig_prod, Lig_loss, Lig_scavenge, &
          Fefree, Lig_photochem, Lig_deg, marbl_interior_tendency_diags)
 
-    associate( POP => marbl_particulate_share%POP )
-    call store_diagnostics_phosphorus_fluxes(domain, POP, autotroph_derived_terms, interior_tendencies, &
-         marbl_tracer_indices, unit_system, marbl_interior_tendency_diags, marbl_status_log)
-    if (marbl_status_log%labort_marbl) then
-      call marbl_status_log%log_error_trace('store_diagnostics_phosphorus_fluxes', subname)
-      return
-    end if
-    end associate
-
     associate( PON => marbl_particulate_share%PON )
     call store_diagnostics_nitrogen_fluxes(domain, PON, denitrif, sed_denitrif, &
          autotroph_derived_terms, interior_tendencies, marbl_tracer_indices, &
          unit_system, marbl_interior_tendency_diags, marbl_status_log)
     if (marbl_status_log%labort_marbl) then
       call marbl_status_log%log_error_trace('store_diagnostics_nitrogen_fluxes', subname)
+      return
+    end if
+    end associate
+
+    associate( POP => marbl_particulate_share%POP )
+    call store_diagnostics_phosphorus_fluxes(domain, POP, autotroph_derived_terms, interior_tendencies, &
+         marbl_tracer_indices, unit_system, marbl_interior_tendency_diags, marbl_status_log)
+    if (marbl_status_log%labort_marbl) then
+      call marbl_status_log%log_error_trace('store_diagnostics_phosphorus_fluxes', subname)
       return
     end if
     end associate

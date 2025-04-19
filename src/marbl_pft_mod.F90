@@ -29,9 +29,9 @@ module marbl_pft_mod
 
     real(r8)                :: kFe, kCO2, kPO4, kDOP, kNO3, kNH4, kSiO3 ! nutrient uptake half-sat constants
     real(r8)                :: Qp_fixed                           ! P/C ratio for fixed P/C ratios
-    real(r8)                :: gQfe_max, gQfe_min                 ! initial and minimum Fe/C ratio for growth
-    real(r8)                :: gQp_max, gQp_min                   ! initial and minimum P/C ratio for growth
-    real(r8)                :: gQn_max, gQn_min                   ! initial and minimum N/C ratio for growth
+    real(r8)                :: gQfe_max, gQfe_min                 ! maximum and minimum Fe/C ratio for growth
+    real(r8)                :: gQp_max, gQp_min                   ! maximum and minimum P/C ratio for growth
+    real(r8)                :: gQn_max, gQn_min                   ! maximum and minimum N/C ratio for growth
     real(r8)                :: POpt, NOpt, FeOpt, SiOpt           ! PO4, N, Fe, SiO3 threshold in uptake ratio computations
     real(r8)                :: alphaPI_per_day                    ! init slope of P_I curve (GD98) (mmol C m^2/(mg Chl W day))
     real(r8)                :: alphaPI                            ! init slope of P_I curve (GD98) (mmol C m^2/(mg Chl W sec))

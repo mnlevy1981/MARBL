@@ -1595,7 +1595,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'gQfe_max'
-      lname    = 'initial Fe/C ratio for growth'
+      lname    = 'maximum Fe/C ratio for growth'
       units    = 'unitless'
       datatype = 'real'
       rptr     => autotroph_settings(n)%gQfe_max
@@ -1626,7 +1626,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       if (lvariable_PtoC) then
         write(sname, "(2A)") trim(prefix), 'gQp_max'
-        lname    = 'initial P/C ratio for growth'
+        lname    = 'maximum P/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQp_max
@@ -1670,7 +1670,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       if (lvariable_NtoC) then
         write(sname, "(2A)") trim(prefix), 'gQn_max'
-        lname    = 'initial N/C ratio for growth'
+        lname    = 'maximum N/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQn_max
