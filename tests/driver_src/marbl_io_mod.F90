@@ -485,12 +485,6 @@ contains
           forcing_fields_out(n)%field_0d(col_id) = -5.8_r8
         end if
         cycle
-      else if (trim(varname) == 'iron_redsed_flux') then
-        forcing_fields_out(n)%field_1d(col_id,:) = 0._r8
-        cycle
-      else if (trim(varname) == 'iron_vent_flux') then
-        forcing_fields_out(n)%field_1d(col_id,:) = 0._r8
-        cycle
       end if
 
       ! Get netcdf varid
