@@ -218,8 +218,8 @@ module marbl_settings_mod
 
   character(len=char_len), target :: PFT_defaults             ! Set up PFT parameters based on known classes, e.g. 'CESM2'
                                                               ! (or set to 'user-specified' and use put_setting())
-  logical(log_kind), target :: base_bio_on                    ! control whether base tracer module is active
-  logical(log_kind), target :: abio_dic_on                    ! control whether abio tracer module is active
+  logical(log_kind), target :: base_bio_on                    ! control whether the base ecosystem tracer module is active
+  logical(log_kind), target :: abio_dic_on                    ! control whether abiotic carbon tracer module is active
   logical(log_kind), target :: ciso_on                        ! control whether ciso tracer module is active
   logical(log_kind), target :: lsource_sink                   ! control which portion of code is executed, useful for debugging
   logical(log_kind), target :: ciso_lsource_sink              ! control which portion of carbon isotope code is executed, useful for debugging
@@ -240,7 +240,7 @@ module marbl_settings_mod
   logical(log_kind), target :: lp_remin_scalef                ! Apply p_remin_scalef to particulate remin (and request it as a forcing)
   logical(log_kind), target :: labio_derivative_diags         ! Compute derivative diagnostic terms in abiotic surface flux module
 
-  character(len=char_len), target :: init_bury_coeff_opt
+  character(len=char_len), target :: init_bury_coeff_opt      ! Source of initial burial coefficient
 
   real(r8), target :: &
        particulate_flux_ref_depth, & ! reference depth for particulate flux diagnostics (L)
@@ -277,11 +277,11 @@ module marbl_settings_mod
        parm_Lig_degrade_rate0,     & ! Fe-binding ligand bacterial degradation base rate coefficient
        parm_Fe_desorption_rate0,   & ! desorption rate for scavenged Fe from particles
        parm_f_prod_sp_CaCO3,       & ! fraction of sp prod. as CaCO3 prod.
-       parm_POC_diss,              & ! base POC diss len scale
-       parm_SiO2_diss,             & ! base SiO2 diss len scale
+       parm_POC_diss,              & ! base POC dissolution length scale
+       parm_SiO2_diss,             & ! base SiO2 dissolution length scale
        parm_SiO2_gamma,            & ! SiO2 gamma (fraction of production -> hard subclass)
        parm_hPOC_SiO2_ratio,       & ! hPOC to SiO2 ratio
-       parm_CaCO3_diss,            & ! base CaCO3 diss len scale
+       parm_CaCO3_diss,            & ! base CaCO3 dissolution length scale
        parm_CaCO3_gamma,           & ! CaCO3 gamma (fraction of production -> hard subclass)
        parm_hPOC_CaCO3_ratio,      & ! hPOC to CaCO3 ratio
        parm_hPOC_dust_ratio,       & ! hPOC to dust ratio
@@ -309,10 +309,10 @@ module marbl_settings_mod
 
   real(r8), dimension(4), target :: &
        parm_scalelen_z,       & ! depths of prescribed scalelen values
-       parm_scalelen_vals       ! prescribed scalelen values
+       parm_scalelen_vals       ! prescribed scale length values
 
-  character(len=char_len), target :: caco3_bury_thres_opt         ! option of threshold of caco3 burial ['fixed_depth', 'omega_calc']
-  real(r8),                target :: caco3_bury_thres_depth       ! threshold depth for caco3_bury_thres_opt='fixed_depth'
+  character(len=char_len), target :: caco3_bury_thres_opt         ! Option for threshold of CaCO3 burial ['fixed_depth', 'omega_calc']
+  real(r8),                target :: caco3_bury_thres_depth       ! Threshold depth for CaCO3 burial when opt = 'fixed_depth'
   real(r8),                target :: caco3_bury_thres_omega_calc  ! omega calcite threshold for caco3_bury_thres_opt='omega_calc'
   ! -----------
   ! PON_sed_loss = PON_bury_coeff * Q * POC_sed_loss
@@ -626,7 +626,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     ! -----------------------
 
     sname     = 'base_bio_on'
-    lname     = 'Control whether base tracer module is active'
+    lname     = 'Control whether the base ecosystem tracer module is active'
     units     = 'unitless'
     datatype  = 'logical'
     lptr      => base_bio_on
@@ -635,7 +635,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
     sname     = 'abio_dic_on'
-    lname     = 'Control whether abiotic tracer module is active'
+    lname     = 'Control whether abiotic carbon tracer module is active'
     units     = 'unitless'
     datatype  = 'logical'
     lptr      => abio_dic_on
@@ -759,7 +759,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'lcompute_nhx_surface_emis'
-      lname     = 'control if NHx emissions are computed'
+      lname     = 'Control if NHx emissions are computed'
       units     = 'unitless'
       datatype  = 'logical'
       lptr      => lcompute_nhx_surface_emis
@@ -768,7 +768,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'lvariable_PtoC'
-      lname     = 'control if PtoC ratios in autotrophs vary'
+      lname     = 'Control if PtoC ratios in autotrophs vary'
       units     = 'unitless'
       datatype  = 'logical'
       lptr      => lvariable_PtoC
@@ -777,7 +777,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'lvariable_NtoC'
-      lname     = 'control if NtoC ratios in autotrophs vary'
+      lname     = 'Control if NtoC ratios in autotrophs vary'
       units     = 'unitless'
       datatype  = 'logical'
       lptr      => lvariable_NtoC
@@ -786,7 +786,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'ladjust_bury_coeff'
-      lname     = 'Adjust the bury coefficient to maintain equilibrium'
+      lname     = 'Control if bury coefficients are adjusted (rather than constant)'
       units     = 'unitless'
       datatype  = 'logical'
       lptr      => ladjust_bury_coeff
@@ -817,7 +817,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       ! --------------------------
 
       sname     = 'init_bury_coeff_opt'
-      lname     = 'How to set initial bury coefficients'
+      lname     = 'Source of initial burial coefficient'
       units     = 'unitless'
       datatype  = 'string'
       sptr      => init_bury_coeff_opt
@@ -956,7 +956,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_init_POC_bury_coeff'
-      lname     = 'initial scale factor for burial of POC'
+      lname     = 'Initial scale factor for burial of POC'
       units     = 'unitless'
       datatype  = 'real'
       rptr      => parm_init_POC_bury_coeff
@@ -965,7 +965,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_init_POP_bury_coeff'
-      lname     = 'initial scale factor for burial of POP'
+      lname     = 'Initial scale factor for burial of POP'
       units     = 'unitless'
       datatype  = 'real'
       rptr      => parm_init_POP_bury_coeff
@@ -974,7 +974,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_init_bSi_bury_coeff'
-      lname     = 'initial scale factor for burial of bSi'
+      lname     = 'Initial scale factor for burial of bSi'
       units     = 'unitless'
       datatype  = 'real'
       rptr      => parm_init_bSi_bury_coeff
@@ -983,7 +983,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_Fe_scavenge_rate0'
-      lname     = 'scavenging base rate for Fe'
+      lname     = 'Scavenging base rate for Fe'
       units     = 'cm^2/ng s/yr'
       datatype  = 'real'
       rptr      => parm_Fe_scavenge_rate0
@@ -992,7 +992,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_Lig_scavenge_rate0'
-      lname     = 'scavenging base rate for bound ligand'
+      lname     = 'Scavenging base rate for bound ligand'
       units     = 'cm^2/ng s/yr'
       datatype  = 'real'
       rptr      => parm_Lig_scavenge_rate0
@@ -1001,7 +1001,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_FeLig_scavenge_rate0'
-      lname     = 'scavenging base rate for bound iron'
+      lname     = 'Scavenging base rate for bound iron'
       units     = 'cm^2/ng s/yr'
       datatype  = 'real'
       rptr      => parm_FeLig_scavenge_rate0
@@ -1010,7 +1010,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_Lig_degrade_rate0'
-      lname     = 'Fe-binding ligand bacterial degradation rate coefficient'
+      lname     = 'Fe-binding ligand bacterial degradation base rate coefficient'
       units     = '1'
       datatype  = 'real'
       rptr      => parm_Lig_degrade_rate0
@@ -1019,7 +1019,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_Fe_desorption_rate0'
-      lname     = 'desorption rate for scavenged Fe from particles'
+      lname     = 'Desorption rate for scavenged Fe from particles'
       units     = '1/cm'
       datatype  = 'real'
       rptr      => parm_Fe_desorption_rate0
@@ -1037,7 +1037,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_POC_diss'
-      lname     = 'base POC dissolution length scale'
+      lname     = 'Base POC dissolution length scale'
       units     = 'cm'
       datatype  = 'real'
       rptr      => parm_POC_diss
@@ -1046,7 +1046,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_SiO2_diss'
-      lname     = 'base SiO2 dissolution length scale'
+      lname     = 'Base SiO2 dissolution length scale'
       units     = 'cm'
       datatype  = 'real'
       rptr      => parm_SiO2_diss
@@ -1073,7 +1073,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_CaCO3_diss'
-      lname     = 'base CaCO3 dissolution length scale'
+      lname     = 'Base CaCO3 dissolution length scale'
       units     = 'cm'
       datatype  = 'real'
       rptr      => parm_CaCO3_diss
@@ -1136,7 +1136,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'parm_sed_denitrif_coeff'
-      lname     = 'global scaling factor for sed_denitrif'
+      lname     = 'Global scaling factor for sed_denitrif'
       units     = '1'
       datatype  = 'real'
       rptr      => parm_sed_denitrif_coeff
@@ -1145,8 +1145,8 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'bury_coeff_rmean_timescale_years'
-      lname     = 'Timescale for bury coefficient running means'
-      units     = 'yr'
+      lname     = 'Running mean time scale for bury coefficients'
+      units     = 'years'
       datatype  = 'real'
       rptr      => bury_coeff_rmean_timescale_years
       call this%add_var(sname, lname, units, datatype, category,       &
@@ -1166,7 +1166,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       sname     = 'parm_scalelen_vals'
       lname     = 'Prescribed scale length values'
-      units     = 'cm'
+      units     = 'unitless'
       call this%add_var_1d_r8(sname, lname, units, category,             &
                                 parm_scalelen_vals, marbl_status_log)
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
@@ -1176,7 +1176,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       ! -----------------------------
 
       sname     = 'caco3_bury_thres_opt'
-      lname     = 'Option for CaCO3 burial threshold'
+      lname     = 'Option for threshold of CaCO3 burial'
       units     = 'unitless'
       datatype  = 'string'
       sptr      => caco3_bury_thres_opt
@@ -1185,7 +1185,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'caco3_bury_thres_depth'
-      lname     = 'Threshold depth for CaCO3 burial (if using fixed_depth option)'
+      lname     = "Threshold depth for CaCO3 burial when opt = 'fixed_depth'"
       units     = 'cm'
       datatype  = 'real'
       rptr      => caco3_bury_thres_depth
@@ -1194,7 +1194,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'caco3_bury_thres_omega_calc'
-      lname     = 'omega calcite threshold for CaCO3 burial (if using omega_calc option)'
+      lname     = "omega calcite threshold for CaCO3 burial when opt = 'omega_calc'"
       units     = '1'
       datatype  = 'real'
       rptr      => caco3_bury_thres_omega_calc
@@ -1203,7 +1203,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'PON_bury_coeff'
-      lname     = 'scale factor for burial of PON'
+      lname     = 'Scale factor for burial of PON'
       units     = 'unitless'
       datatype  = 'real'
       rptr      => PON_bury_coeff
@@ -1248,7 +1248,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       sname     = 'QCaCO3_max'
-      lname     = 'Max CaCO3/C ratio for implicit calcifiers'
+      lname     = 'Max CaCO3/C ratio for calcifiers'
       units     = 'mmol CaCO3/mmol C'
       datatype  = 'real'
       rptr      => QCaCO3_max
@@ -1435,7 +1435,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       write(category, "(A,1X,I0)") 'autotroph', n
 
       write(sname, "(2A)") trim(prefix), 'sname'
-      lname    = 'Short name of autotroph'
+      lname    = 'Short name of this autotroph'
       units    = 'unitless'
       datatype = 'string'
       sptr     => autotroph_settings(n)%sname
@@ -1445,7 +1445,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'lname'
-      lname    = 'Long name of autotroph'
+      lname    = 'Long name of this autotroph'
       units    = 'unitless'
       datatype = 'string'
       sptr     => autotroph_settings(n)%lname
@@ -1455,7 +1455,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'temp_func_form_opt'
-      lname    = 'Temperature functional form option for this autotroph'
+      lname    = 'Option for the temperature scaling functional form for this autotroph'
       units    = 'unitless'
       datatype = 'string'
       sptr     => autotroph_settings(n)%temp_func_form_opt
@@ -1465,7 +1465,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'Nfixer'
-      lname    = 'Flag is true if this autotroph fixes N2'
+      lname    = 'Control whether this autotroph fixes nitrogen'
       units    = 'unitless'
       datatype = 'logical'
       lptr     => autotroph_settings(n)%Nfixer
@@ -1475,7 +1475,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'imp_calcifier'
-      lname    = 'Flag is true if this autotroph implicitly handles calcification'
+      lname    = 'Control whether this autotroph implicitly handles calcification'
       units    = 'unitless'
       datatype = 'logical'
       lptr     => autotroph_settings(n)%imp_calcifier
@@ -1485,7 +1485,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'exp_calcifier'
-      lname    = 'Flag is true if this autotroph explicitly handles calcification'
+      lname    = 'Control whether this autotroph explicitly handles calcification'
       units    = 'unitless'
       datatype = 'logical'
       lptr     => autotroph_settings(n)%exp_calcifier
@@ -1495,7 +1495,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'silicifier'
-      lname    = 'Flag is true if this autotroph is a silicifier'
+      lname    = 'Control whether this autotroph is a silicifier'
       units    = 'unitless'
       datatype = 'logical'
       lptr     => autotroph_settings(n)%silicifier
@@ -1505,7 +1505,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'is_carbon_limited'
-      lname    = 'Flag is true if this autotroph is carbon limited'
+      lname    = 'Control whether this autotroph is carbon limited'
       units    = 'unitless'
       datatype = 'logical'
       lptr     => autotroph_settings(n)%is_carbon_limited
@@ -1515,7 +1515,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kFe'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'Fe uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kFe
@@ -1525,7 +1525,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kPO4'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'PO4 uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kPO4
@@ -1535,7 +1535,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kDOP'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'DOP uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kDOP
@@ -1545,7 +1545,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kNO3'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'NO3 uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kNO3
@@ -1555,7 +1555,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kNH4'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'NH4 uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kNH4
@@ -1565,7 +1565,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kSiO3'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'SiO3 uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kSiO3
@@ -1575,7 +1575,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'kCO2'
-      lname    = 'nutrient uptake half-sat constants'
+      lname    = 'CO2 uptake half-sat constant'
       units    = 'nmol/cm^3'
       datatype = 'real'
       rptr     => autotroph_settings(n)%kCO2
@@ -1595,7 +1595,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'gQfe_max'
-      lname    = 'maximum Fe/C ratio for growth'
+      lname    = 'Maximum Fe/C ratio for growth'
       units    = 'unitless'
       datatype = 'real'
       rptr     => autotroph_settings(n)%gQfe_max
@@ -1605,7 +1605,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'gQfe_min'
-      lname    = 'minimum Fe/C ratio for growth'
+      lname    = 'Minimum Fe/C ratio for growth'
       units    = 'unitless'
       datatype = 'real'
       rptr     => autotroph_settings(n)%gQfe_min
@@ -1626,7 +1626,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       if (lvariable_PtoC) then
         write(sname, "(2A)") trim(prefix), 'gQp_max'
-        lname    = 'maximum P/C ratio for growth'
+        lname    = 'Maximum P/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQp_max
@@ -1636,7 +1636,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'gQp_min'
-        lname    = 'minimum P/C ratio for growth'
+        lname    = 'Minimum P/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQp_min
@@ -1670,7 +1670,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       if (lvariable_NtoC) then
         write(sname, "(2A)") trim(prefix), 'gQn_max'
-        lname    = 'maximum N/C ratio for growth'
+        lname    = 'Maximum N/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQn_max
@@ -1680,7 +1680,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'gQn_min'
-        lname    = 'minimum N/C ratio for growth'
+        lname    = 'Minimum N/C ratio for growth'
         units    = 'unitless'
         datatype = 'real'
         rptr     => autotroph_settings(n)%gQn_min
@@ -1702,7 +1702,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'alphaPI_per_day'
       lname    = 'Initial slope of P_I curve (GD98)'
-      units    = 'mmol m^2 / (mg Chl W day)'
+      units    = 'mmol m^2/(mg Chl W day)'
       datatype = 'real'
       rptr     => autotroph_settings(n)%alphaPI_per_day
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1711,7 +1711,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'PCref_per_day'
-      lname    = 'max C-spec growth rate at Tref'
+      lname    = 'Maximum C-spec growth rate at Tref'
       units    = '1/day'
       datatype = 'real'
       rptr     => autotroph_settings(n)%PCref_per_day
@@ -1721,7 +1721,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'thetaN_max'
-      lname    = 'max thetaN (Chl/N)'
+      lname    = 'Maximum thetaN (Chl / N)'
       units    = 'mg Chl / mmol'
       datatype = 'real'
       rptr     => autotroph_settings(n)%thetaN_max
@@ -1761,7 +1761,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'mort_per_day'
-      lname    = 'linear mortality rate'
+      lname    = 'Linear mortality rate'
       units    = '1/day'
       datatype = 'real'
       rptr     => autotroph_settings(n)%mort_per_day
@@ -1771,8 +1771,8 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'mort2_per_day'
-      lname    = 'quadratic mortality rate'
-      units    = '1/day/(mmol/m^3)'
+      lname    = 'Quadratic mortality rate'
+      units    = '(1/day)/(mmol/m^3)'
       datatype = 'real'
       rptr     => autotroph_settings(n)%mort2_per_day
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1782,7 +1782,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'agg_rate_max'
       lname    = 'Maximum agg rate'
-      units    = '1/d'
+      units    = '1/day'
       datatype = 'real'
       rptr     => autotroph_settings(n)%agg_rate_max
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1792,7 +1792,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'agg_rate_min'
       lname    = 'Minimum agg rate'
-      units    = '1/d'
+      units    = '1/day'
       datatype = 'real'
       rptr     => autotroph_settings(n)%agg_rate_min
       call this%add_var(sname, lname, units, datatype, category,     &
@@ -1801,7 +1801,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'loss_poc'
-      lname    = 'routing of loss term'
+      lname    = 'Routing of loss term'
       units    = 'unitless'
       datatype = 'real'
       rptr     => autotroph_settings(n)%loss_poc
@@ -1811,7 +1811,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'Ea'
-      lname    = 'activation energy for Arrhenius equation'
+      lname    = 'Activation energy for Arrhenius equation'
       units    = 'eV'
       datatype = 'real'
       rptr     => autotroph_settings(n)%Ea
@@ -1827,7 +1827,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       write(category, "(A,1X,I0)") 'zooplankton_settings', n
 
       write(sname, "(2A)") trim(prefix), 'sname'
-      lname    = 'Short name of zooplankton'
+      lname    = 'Short name of this zooplankton'
       units    = 'unitless'
       datatype = 'string'
       sptr     => zooplankton_settings(n)%sname
@@ -1837,7 +1837,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'lname'
-      lname    = 'Long name of zooplankton'
+      lname    = 'Long name of this zooplankton'
       units    = 'unitless'
       datatype = 'string'
       sptr     => zooplankton_settings(n)%lname
@@ -1847,7 +1847,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
       write(sname, "(2A)") trim(prefix), 'temp_func_form_opt'
-      lname    = 'Temperature functional form option for this zooplankton'
+      lname    = 'Option for the temperature scaling functional form for this zooplankton'
       units    = 'unitless'
       datatype = 'string'
       sptr     => zooplankton_settings(n)%temp_func_form_opt
@@ -1878,7 +1878,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
 
       write(sname, "(2A)") trim(prefix), 'z_mort2_0_per_day'
       lname    = 'Quadratic mortality rate'
-      units    = '1/day/(mmol/m^3)'
+      units    = '(1/day)/(mmol/m^3)'
       datatype = 'real'
       rptr     => zooplankton_settings(n)%z_mort2_0_per_day
       call this%add_var(sname, lname, units, datatype, category,       &
@@ -1914,7 +1914,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         write(category, "(A,1X,I0,1X,I0)") 'grazing_relationship_settings', m, n
 
         write(sname, "(2A)") trim(prefix), 'sname'
-        lname    = 'Short name of grazing relationship'
+        lname    = 'Short name of this grazing relationship'
         units    = 'unitless'
         datatype = 'string'
         sptr     => grazing_relationship_settings(m,n)%sname
@@ -1924,7 +1924,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'lname'
-        lname    = 'Long name of grazing relationship'
+        lname    = 'Long name of this grazing relationship'
         units    = 'unitless'
         datatype = 'string'
         sptr     => grazing_relationship_settings(m,n)%lname
@@ -1934,7 +1934,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'auto_ind_cnt'
-        lname    = 'number of autotrophs in prey-class auto_ind'
+        lname    = 'Number of autotrophs being grazed'
         units    = 'unitless'
         datatype = 'integer'
         iptr     => grazing_relationship_settings(m,n)%auto_ind_cnt
@@ -1944,7 +1944,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'zoo_ind_cnt'
-        lname    = 'number of zooplankton in prey-class auto_ind'
+        lname    = 'Number of zooplankton being grazed'
         units    = 'unitless'
         datatype = 'integer'
         iptr     => grazing_relationship_settings(m,n)%zoo_ind_cnt
@@ -1954,7 +1954,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'grazing_function'
-        lname    = 'functional form of grazing parmaeterization'
+        lname    = 'Functional form of grazing parameterization'
         units    = 'unitless'
         datatype = 'integer'
         iptr     => grazing_relationship_settings(m,n)%grazing_function
@@ -1964,7 +1964,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'z_umax_0_per_day'
-        lname    = 'max zoo growth rate at Tref'
+        lname    = 'Maximum zooplankton growth rate at Tref'
         units    = '1/day'
         datatype = 'real'
         rptr     => grazing_relationship_settings(m,n)%z_umax_0_per_day
@@ -1984,7 +1984,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'graze_zoo'
-        lname    = 'routing of grazed term (remainder goes to DIC)'
+        lname    = 'Routing of grazed term, remainder goes to DIC'
         units    = 'unitless'
         datatype = 'real'
         rptr     => grazing_relationship_settings(m,n)%graze_zoo
@@ -1994,7 +1994,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'graze_poc'
-        lname    = 'routing of grazed term (remainder goes to DIC)'
+        lname    = 'Routing of grazed term, remainder goes to DIC'
         units    = 'unitless'
         datatype = 'real'
         rptr     => grazing_relationship_settings(m,n)%graze_poc
@@ -2004,7 +2004,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
 
         write(sname, "(2A)") trim(prefix), 'graze_doc'
-        lname    = 'routing of grazed term (remainder goes to DIC)'
+        lname    = 'Routing of grazed term, remainder goes to DIC'
         units    = 'unitless'
         datatype = 'real'
         rptr     => grazing_relationship_settings(m,n)%graze_doc
@@ -2026,7 +2026,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         cnt = grazing_relationship_settings(m,n)%auto_ind_cnt
         if (cnt .gt. 0) then
           write(sname, "(2A)") trim(prefix), 'auto_ind'
-          lname     = 'Indices of autotrophs in class'
+          lname     = 'Indices of autotrophs being grazed'
           units     = 'unitless'
           call this%add_var_1d_int(sname, lname, units, category,      &
                             grazing_relationship_settings(m,n)%auto_ind(1:cnt),      &
@@ -2038,7 +2038,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
         cnt = grazing_relationship_settings(m,n)%zoo_ind_cnt
         if (cnt .gt. 0) then
           write(sname, "(2A)") trim(prefix), 'zoo_ind'
-          lname     = 'Indices of autotrophs in class'
+          lname     = 'Indices of zooplankton being grazed'
           units     = 'unitless'
           call this%add_var_1d_int(sname, lname, units, category,       &
                                    grazing_relationship_settings(m,n)%zoo_ind(1:cnt), &

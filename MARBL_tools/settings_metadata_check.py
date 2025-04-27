@@ -83,7 +83,6 @@ if __name__ == "__main__":
                                            unit_system='cgs'
                                           )
 
-    logger.info(len(yaml_in))
     error_found = False
     for subcat_name in DefaultSettings.get_subcategory_names():
         for varname in DefaultSettings.get_settings_dict_variable_names(subcat_name):
@@ -92,6 +91,11 @@ if __name__ == "__main__":
                 json_dict = {}
                 for keys in ['units', 'longname']:
                     json_dict[keys] = DefaultSettings.settings_dict[varname]['attrs'][keys]
+                if varname == "particulate_flux_ref_depth":
+                    # particulate_flux_ref_depth is a special case -- it is defined in JSON in m
+                    # because, regardless of cgs vs mks, we want variables like FOO_100m
+                    # DefaultSettings converts it to cm for cgs, but the Fortran keeps it in 'm'
+                    json_dict['units'] = 'm'
                 if fortran_dict['units'] != json_dict['units']:
                     logger.info(f'Variable {varname} has units "{fortran_dict["units"]}"' +
                                 f' in Fortran and "{json_dict["units"]}" in JSON')
