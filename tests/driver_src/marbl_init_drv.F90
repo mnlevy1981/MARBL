@@ -14,18 +14,21 @@ module marbl_init_drv
 
 Contains
 
-  subroutine test(marbl_instance, unit_system_opt, lshutdown, num_PAR_subcols, lhas_global_ops)
+  subroutine test(marbl_instance, unit_system_opt, lshutdown, num_PAR_subcols, lhas_global_ops, &
+                  lwrite_settings_yaml)
 
     type(marbl_interface_class), intent(inout) :: marbl_instance
     character(len=*),            intent(in)    :: unit_system_opt
     logical, optional,           intent(in)    :: lshutdown
     integer, optional,           intent(in)    :: num_PAR_subcols
     logical, optional,           intent(in)    :: lhas_global_ops
+    logical, optional,           intent(in)    :: lwrite_settings_yaml
 
     character(*), parameter      :: subname = 'marbl_init_drv:test'
+    character(len=128)           :: sname, units, lname
     real(kind=r8), dimension(km) :: delta_z, zw, zt
-    integer                      :: k, num_PAR_subcols_loc
-    logical                      :: lshutdown_loc, lhas_global_ops_loc
+    integer                      :: n, k, num_PAR_subcols_loc
+    logical                      :: lshutdown_loc, lhas_global_ops_loc, lwrite_settings_yaml_loc
 
     ! Run marbl_instance%shutdown? (Skip when running get_setting() from driver)
     if (present(lshutdown)) then
@@ -44,6 +47,12 @@ Contains
       lhas_global_ops_loc = lhas_global_ops
     else
       lhas_global_ops_loc = .false.
+    end if
+
+    if (present(lwrite_settings_yaml)) then
+      lwrite_settings_yaml_loc = lwrite_settings_yaml
+    else
+      lwrite_settings_yaml_loc = .false.
     end if
 
     ! Initialize levels
@@ -69,6 +78,16 @@ Contains
     if (marbl_instance%StatusLog%labort_marbl) then
       call marbl_instance%StatusLog%log_error_trace('marbl%init', subname)
       return
+    end if
+
+    if (lwrite_settings_yaml_loc) then
+      open (unit=10,file="settings_metadata.yaml",action="write")
+      do n = 1,marbl_instance%get_settings_var_cnt()
+        call marbl_instance%inquire_settings_metadata(n, sname=sname, lname=lname, units=units)
+        write(10, "(A,':')") trim(sname)
+        write(10, "(2A)") '  longname: ', trim(lname)
+        write(10, "(2A)") '  units: ', trim(units)
+      end do
     end if
 
     if (lshutdown_loc) then

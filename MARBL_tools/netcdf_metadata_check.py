@@ -166,8 +166,8 @@ if __name__ == "__main__":
                 logger.info("* JSON vertical grid: %s", json_dict["vertical_grid"])
                 logger.info("* netcdf dimensions: %s", ds[var].dims)
 
-if diff_found:
-    logger.error("Differences found between JSON and netCDF metadata!")
-    abort(1)
-else:
-    logger.info("No differences found between JSON and netCDF metadata")
+    if diff_found:
+        logger.error("Differences found between JSON and netCDF metadata!")
+        abort(1)
+    else:
+        logger.info("No differences found between JSON and netCDF metadata")

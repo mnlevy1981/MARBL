@@ -55,7 +55,8 @@ print_status "CodeConsistency.py" >> ${RESULTS_CACHE}
 command -v pylint 2>&1 > /dev/null
 if [ $? -eq 0 ]; then
   cd ${MARBL_ROOT}/MARBL_tools
-  (set -x ; pylint --rcfile=pylintrc code_consistency.py netcdf_comparison.py netcdf_metadata_check.py)
+  (set -x ; pylint --rcfile=pylintrc code_consistency.py netcdf_comparison.py \
+                                     netcdf_metadata_check.py settings_metadata_check.py)
   STATUS=$(check_return $?)
   print_status "pylint" >> ${RESULTS_CACHE}
 fi
@@ -145,10 +146,16 @@ if [ "${STATUS}" == "PASS" ]; then
   done
   # Initialize MARBL with settings generated from every JSON file
   for shortname in cesm2.0 cesm2.1 cesm2.1+cocco latest latest+cocco latest+4p2z; do
-    if [ -f ../../../MARBL_tools/marbl_${shortname}.settings ]; then
+    if [ -f ${MARBL_ROOT}/MARBL_tools/marbl_${shortname}.settings ]; then
+      cd ${MARBL_ROOT}/tests/regression_tests/init
       (set -x ; ./init.py -s ../../../MARBL_tools/marbl_${shortname}.settings)
       STATUS=$(check_return $?)
       print_status "init.py (${shortname})" >> ${RESULTS_CACHE}
+
+      cd ${MARBL_ROOT}/MARBL_tools/
+      (set -x ; ./settings_metadata_check.py -f ../defaults/json/settings_${shortname}.json)
+      STATUS=$(check_return $?)
+      print_status "Compare settings metadata (${shortname})" >> ${RESULTS_CACHE}
     fi
   done
 

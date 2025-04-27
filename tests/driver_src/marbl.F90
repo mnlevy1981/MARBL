@@ -306,7 +306,7 @@ Program marbl
     ! -- init regression test -- !
     case ('init')
       call verify_single_instance(num_inst, trim(testname))
-      call marbl_init_test(marbl_instances(1), unit_system_opt)
+      call marbl_init_test(marbl_instances(1), unit_system_opt, lwrite_settings_yaml=.true.)
 
     ! -- init-twice test -- !
     case ('init-twice')
