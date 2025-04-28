@@ -3406,7 +3406,7 @@ contains
            POC%sed_loss(k) = POC%to_floor * min(POM_bury_frac_max, POC_bury_coeff * bury_frac)
 
            PON%to_floor = PON%sflux_out(k) + PON%hflux_out(k)
-           PON%sed_loss(k) = PON%to_floor * min(POM_bury_frac_max, PON_bury_coeff * bury_frac)
+           PON%sed_loss(k) = PON%to_floor * PON_bury_coeff * min(POM_bury_frac_max, POC_bury_coeff * bury_frac)
 
            POP%to_floor = POP%sflux_out(k) + POP%hflux_out(k)
            POP%sed_loss(k) = POP%to_floor * min(POM_bury_frac_max, POP_bury_coeff * bury_frac)
