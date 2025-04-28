@@ -63,7 +63,7 @@
                },
                "longname": "Fe threshold in uptake ratio computations",
                "subcategory": "10. autotrophs",
-               "units": "unitless"
+               "units": "nmol/cm^3"
             },
             "NOpt": {
                "datatype": "real",
@@ -76,7 +76,7 @@
                "dependencies": "lvariable_NtoC",
                "longname": "N threshold in uptake ratio computations",
                "subcategory": "10. autotrophs",
-               "units": "unitless"
+               "units": "nmol/cm^3"
             },
             "Nfixer": {
                "datatype": "logical",
@@ -84,9 +84,9 @@
                   "((autotroph_sname)) == \"diaz\"": ".true.",
                   "default": ".false."
                },
-               "longname": "Flag set to true if autotroph fixes nitrogen",
+               "longname": "Control whether this autotroph fixes nitrogen",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "PCref_per_day": {
                "datatype": "real",
@@ -111,7 +111,7 @@
                "dependencies": "lvariable_PtoC",
                "longname": "PO4 threshold in uptake ratio computations",
                "subcategory": "10. autotrophs",
-               "units": "unitless"
+               "units": "nmol/cm^3"
             },
             "Qp_fixed": {
                "datatype": "real",
@@ -135,7 +135,7 @@
                },
                "longname": "Si threshold in uptake ratio computations",
                "subcategory": "10. autotrophs",
-               "units": "unitless"
+               "units": "nmol/cm^3"
             },
             "_type_name": "autotroph_settings_type",
             "agg_rate_max": {
@@ -179,9 +179,9 @@
                "default_value": {
                   "default": ".false."
                },
-               "longname": "Flag set to true if autotroph explicitly handles calcification",
+               "longname": "Control whether this autotroph explicitly handles calcification",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "gQfe_max": {
                "datatype": "real",
@@ -191,7 +191,7 @@
                   "((autotroph_sname)) == \"sp\"": "30e-6",
                   "default": "1e34"
                },
-               "longname": "Initial Fe/C ratio for growth",
+               "longname": "Maximum Fe/C ratio for growth",
                "subcategory": "10. autotrophs",
                "units": "unitless"
             },
@@ -216,7 +216,7 @@
                   "default": "1e34"
                },
                "dependencies": "lvariable_PtoC",
-               "longname": "Initial P/C ratio for growth",
+               "longname": "Maximum P/C ratio for growth",
                "subcategory": "10. autotrophs",
                "units": "unitless"
             },
@@ -239,16 +239,16 @@
                   "((autotroph_sname)) == \"sp\"": ".true.",
                   "default": ".false."
                },
-               "longname": "Flag set to true if autotroph implicitly handles calcification",
+               "longname": "Control whether this autotroph implicitly handles calcification",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "is_carbon_limited": {
                "datatype": "logical",
                "default_value": ".false.",
-               "longname": "Flag set to true if autotroph is carbon limited",
+               "longname": "Control whether this autotroph is carbon limited",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "kCO2": {
                "datatype": "real",
@@ -342,9 +342,9 @@
                   "((autotroph_sname)) == \"sp\"": "Small Phyto",
                   "default": "UNSET"
                },
-               "longname": "Long name of the autotroph",
+               "longname": "Long name of this autotroph",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "loss_poc": {
                "datatype": "real",
@@ -412,9 +412,9 @@
                   "((autotroph_sname)) == \"diat\"": ".true.",
                   "default": ".false."
                },
-               "longname": "Flag set to true if autotroph is a silicifier",
+               "longname": "Control whether this autotroph is a silicifier",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "sname": {
                "datatype": "string",
@@ -424,9 +424,9 @@
                   "((autotroph_sname)) == \"sp\"": "sp",
                   "default": "UNSET"
                },
-               "longname": "Short name of the autotroph",
+               "longname": "Short name of this autotroph",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "temp_func_form_opt": {
                "datatype": "string",
@@ -436,9 +436,9 @@
                   "((autotroph_sname)) == \"sp\"": "q_10",
                   "default": "UNSET"
                },
-               "longname": "Option for the temperature scaling functional form",
+               "longname": "Option for the temperature scaling functional form for this autotroph",
                "subcategory": "10. autotrophs",
-               "units": "non-numeric",
+               "units": "unitless",
                "valid_values": [
                   "q_10",
                   "arrhenius",
@@ -453,7 +453,7 @@
                   "((autotroph_sname)) == \"sp\"": -10,
                   "default": "1e34"
                },
-               "longname": "Temperature where concentration threshold and photosynthesis rate drops",
+               "longname": "Temperature where concentration threshold and photosynthesis rate drop",
                "subcategory": "10. autotrophs",
                "units": "degC"
             },
@@ -523,7 +523,7 @@
                   "((grazer_sname)) == \"sp_zoo\"": 0.06,
                   "default": "1e34"
                },
-               "longname": "Routing of grazed term, remainder goes to dic",
+               "longname": "Routing of grazed term, remainder goes to DIC",
                "subcategory": "12. grazing",
                "units": "unitless"
             },
@@ -535,7 +535,7 @@
                   "((grazer_sname)) == \"sp_zoo\"": 0,
                   "default": "1e34"
                },
-               "longname": "Routing of grazed term, remainder goes to dic",
+               "longname": "Routing of grazed term, remainder goes to DIC",
                "subcategory": "12. grazing",
                "units": "unitless"
             },
@@ -547,7 +547,7 @@
                   "((grazer_sname)) == \"sp_zoo\"": 0.3,
                   "default": "1e34"
                },
-               "longname": "Routing of grazed term, remainder goes to dic",
+               "longname": "Routing of grazed term, remainder goes to DIC",
                "subcategory": "12. grazing",
                "units": "unitless"
             },
@@ -567,9 +567,9 @@
                   "((grazer_sname)) == \"sp_zoo\"": "Grazing of sp by zoo",
                   "default": "UNSET"
                },
-               "longname": "Long name of the grazing relationship",
+               "longname": "Long name of this grazing relationship",
                "subcategory": "12. grazing",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "sname": {
                "datatype": "string",
@@ -579,9 +579,9 @@
                   "((grazer_sname)) == \"sp_zoo\"": "grz_sp_zoo",
                   "default": "UNSET"
                },
-               "longname": "Short name of the grazing relationship",
+               "longname": "Short name of this grazing relationship",
                "subcategory": "12. grazing",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "z_grz": {
                "datatype": "real",
@@ -603,7 +603,7 @@
                   "((grazer_sname)) == \"sp_zoo\"": 3.3,
                   "default": "1e34"
                },
-               "longname": "Max zoo growth rate at tref",
+               "longname": "Maximum zooplankton growth rate at Tref",
                "subcategory": "12. grazing",
                "units": "1/day"
             },
@@ -659,9 +659,9 @@
                   "((zooplankton_sname)) == \"zoo\"": "Zooplankton",
                   "default": "UNSET"
                },
-               "longname": "Long name of the zooplankton",
+               "longname": "Long name of this zooplankton",
                "subcategory": "11. zooplankton",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "loss_thres": {
                "datatype": "real",
@@ -669,7 +669,7 @@
                   "((zooplankton_sname)) == \"zoo\"": 0.075,
                   "default": "1e34"
                },
-               "longname": "Zoo concentration where losses go to zero",
+               "longname": "Concentration where losses go to zero",
                "subcategory": "11. zooplankton",
                "units": "nmol/cm^3"
             },
@@ -679,9 +679,9 @@
                   "((zooplankton_sname)) == \"zoo\"": "zoo",
                   "default": "UNSET"
                },
-               "longname": "Short name of the zooplankton",
+               "longname": "Short name of this zooplankton",
                "subcategory": "11. zooplankton",
-               "units": "non-numeric"
+               "units": "unitless"
             },
             "temp_func_form_opt": {
                "datatype": "string",
@@ -689,9 +689,9 @@
                   "((zooplankton_sname)) == \"zoo\"": "q_10",
                   "default": "UNSET"
                },
-               "longname": "Option for the temperature scaling functional form",
+               "longname": "Option for the temperature scaling functional form for this zooplankton",
                "subcategory": "11. zooplankton",
-               "units": "non-numeric",
+               "units": "unitless",
                "valid_values": [
                   "q_10",
                   "arrhenius",
@@ -706,7 +706,7 @@
                },
                "longname": "Quadratic mortality rate",
                "subcategory": "11. zooplankton",
-               "units": "1/day / (mmol/m^3)"
+               "units": "(1/day)/(mmol/m^3)"
             },
             "z_mort_0_per_day": {
                "datatype": "real",
@@ -1101,9 +1101,9 @@
          "datatype": "string",
          "default_value": "omega_calc",
          "dependencies": "base_bio_on",
-         "longname": "Option of threshold of CaCO3 burial",
+         "longname": "Option for threshold of CaCO3 burial",
          "subcategory": "5. general parameters",
-         "units": "non-numeric",
+         "units": "unitless",
          "valid_values": [
             "fixed_depth",
             "omega_calc"
@@ -1115,7 +1115,7 @@
          "dependencies": "ciso_on",
          "longname": "Option for which biological fractionation calculation to use",
          "subcategory": "5. general parameters",
-         "units": "non-numeric"
+         "units": "unitless"
       },
       "ciso_lsource_sink": {
          "datatype": "logical",
@@ -1215,7 +1215,7 @@
       "lflux_gas_co2": {
          "datatype": "logical",
          "default_value": ".true.",
-         "longname": "Control which portions of code are executed (useful for debugging)",
+         "longname": "Run CO2 gas flux portion of the code",
          "subcategory": "3. config flags",
          "units": "unitless"
       },
@@ -1223,7 +1223,7 @@
          "datatype": "logical",
          "default_value": ".true.",
          "dependencies": "base_bio_on",
-         "longname": "Control which portions of code are executed (useful for debugging)",
+         "longname": "Run O2 gas flux portion of the code",
          "subcategory": "3. config flags",
          "units": "unitless"
       },
@@ -1349,7 +1349,7 @@
          "dependencies": "base_bio_on",
          "longname": "Fe-binding ligand bacterial degradation base rate coefficient",
          "subcategory": "5. general parameters",
-         "units": "unitless"
+         "units": 1
       },
       "parm_Lig_scavenge_rate0": {
          "datatype": "real",
@@ -1425,7 +1425,7 @@
             "default": 2.54
          },
          "dependencies": "base_bio_on",
-         "longname": "Initial scale factor for burial of POC, PON",
+         "longname": "Initial scale factor for burial of POC",
          "subcategory": "5. general parameters (bury coeffs)",
          "units": "unitless"
       },
@@ -1463,7 +1463,7 @@
          "datatype": "real",
          "default_value": 0.94,
          "dependencies": "base_bio_on",
-         "longname": "Fraction of loss to DOC that routed directly to DIC",
+         "longname": "Fraction of loss to DOC that is routed directly to DIC",
          "subcategory": "5. general parameters",
          "units": "unitless"
       },
@@ -1479,7 +1479,7 @@
          "datatype": "real",
          "default_value": 5.0,
          "dependencies": "base_bio_on",
-         "longname": "Minimum O2 needed for production & consumption",
+         "longname": "Minimum O2 needed for production and consumption",
          "subcategory": "5. general parameters",
          "units": "nmol/cm^3"
       },
@@ -1487,7 +1487,7 @@
          "datatype": "real",
          "default_value": 5.0,
          "dependencies": "base_bio_on",
-         "longname": "Width of min O2 range",
+         "longname": "Width of minimum O2 range",
          "subcategory": "5. general parameters",
          "units": "nmol/cm^3"
       },
@@ -1509,7 +1509,7 @@
             ]
          },
          "dependencies": "base_bio_on",
-         "longname": "Prescribed scalelen values",
+         "longname": "Prescribed scale length values",
          "subcategory": "6. Scale lengths",
          "units": "unitless"
       },
@@ -1523,7 +1523,7 @@
             "1000.0e2"
          ],
          "dependencies": "base_bio_on",
-         "longname": "Depths of prescribed scalelen values",
+         "longname": "Depths of prescribed scale length values",
          "subcategory": "6. Scale lengths",
          "units": "cm"
       },
@@ -1536,7 +1536,7 @@
          "dependencies": "base_bio_on",
          "longname": "Global scaling factor for sed_denitrif",
          "subcategory": "5. general parameters",
-         "units": "unitless"
+         "units": 1
       },
       "particulate_flux_ref_depth": {
          "datatype": "real",
@@ -1639,7 +1639,7 @@
          },
          "longname": "Tracer names for tracers that are restored",
          "subcategory": "20. tracer restoring",
-         "units": "non-numeric"
+         "units": "unitless"
       }
    },
    "tracer_modules": {

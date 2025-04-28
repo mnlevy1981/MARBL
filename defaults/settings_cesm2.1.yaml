@@ -18,7 +18,7 @@
 # All variables need to provide the following metadata:
 # 1. longname: a description of the variable
 # 2. subcategory: when writing parameters to the log, MARBL will group variables by subcategory
-# 3. units: physical units (use "unitless" for pure numbers and "non-numeric" for strings / logicals)
+# 3. units: physical units (use "unitless" for pure numbers, strings, and logicals)
 # 4. datatype: integer, real, logical, or string
 # 5. default_value: Value to use unless overwritten by the MARBL input file
 #       NOTE: some parameters provide different default values for different configurations;
@@ -330,13 +330,13 @@ general_parms :
       default_value : .false.
    lflux_gas_o2 :
       dependencies : base_bio_on
-      longname : Control which portions of code are executed (useful for debugging)
+      longname : Run O2 gas flux portion of the code
       subcategory : 3. config flags
       units : unitless
       datatype : logical
       default_value : .true.
    lflux_gas_co2 :
-      longname : Control which portions of code are executed (useful for debugging)
+      longname : Run CO2 gas flux portion of the code
       subcategory : 3. config flags
       units : unitless
       datatype : logical
@@ -460,14 +460,14 @@ general_parms :
       default_value : 100.0
    parm_o2_min :
       dependencies : base_bio_on
-      longname : Minimum O2 needed for production & consumption
+      longname : Minimum O2 needed for production and consumption
       subcategory : 5. general parameters
       units : nmol/cm^3
       datatype : real
       default_value : 5.0
    parm_o2_min_delta :
       dependencies : base_bio_on
-      longname : Width of min O2 range
+      longname : Width of minimum O2 range
       subcategory : 5. general parameters
       units : nmol/cm^3
       datatype : real
@@ -488,14 +488,14 @@ general_parms :
       default_value : 1.0
    parm_labile_ratio :
       dependencies : base_bio_on
-      longname : Fraction of loss to DOC that routed directly to DIC
+      longname : Fraction of loss to DOC that is routed directly to DIC
       subcategory : 5. general parameters
       units : unitless
       datatype : real
       default_value : 0.94
    parm_init_POC_bury_coeff :
       dependencies : base_bio_on
-      longname : Initial scale factor for burial of POC, PON
+      longname : Initial scale factor for burial of POC
       subcategory : 5. general parameters (bury coeffs)
       units : unitless
       datatype : real
@@ -545,7 +545,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Fe-binding ligand bacterial degradation base rate coefficient
       subcategory : 5. general parameters
-      units : unitless
+      units : 1
       datatype : real
       default_value : 0.000094
    parm_Fe_desorption_rate0 :
@@ -645,7 +645,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Global scaling factor for sed_denitrif
       subcategory : 5. general parameters
-      units : unitless
+      units : 1
       datatype : real
       default_value :
          default : 1
@@ -659,7 +659,7 @@ general_parms :
       default_value : 10
    parm_scalelen_z :
       dependencies : base_bio_on
-      longname : Depths of prescribed scalelen values
+      longname : Depths of prescribed scale length values
       subcategory : 6. Scale lengths
       units : cm
       datatype : real
@@ -671,7 +671,7 @@ general_parms :
          - 1000.0e2
    parm_scalelen_vals :
       dependencies : base_bio_on
-      longname : Prescribed scalelen values
+      longname : Prescribed scale length values
       subcategory : 6. Scale lengths
       units : unitless
       datatype : real
@@ -689,9 +689,9 @@ general_parms :
             - 4.4
    caco3_bury_thres_opt :
       dependencies : base_bio_on
-      longname : Option of threshold of CaCO3 burial
+      longname : Option for threshold of CaCO3 burial
       subcategory : 5. general parameters
-      units : non-numeric
+      units : unitless
       datatype : string
       default_value : omega_calc
       valid_values :
@@ -736,7 +736,7 @@ general_parms :
       dependencies : ciso_on
       longname : Option for which biological fractionation calculation to use
       subcategory : 5. general parameters
-      units : non-numeric
+      units : unitless
       datatype : string
       default_value : Laws
    auto_mort2_exp :
@@ -871,9 +871,9 @@ PFT_derived_types :
          # (_* are not part of the type)
          _type_name : autotroph_settings_type
          sname :
-            longname : Short name of the autotroph
+            longname : Short name of this autotroph
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
@@ -881,9 +881,9 @@ PFT_derived_types :
                ((autotroph_sname)) == "diat" : diat
                ((autotroph_sname)) == "diaz" : diaz
          lname :
-            longname : Long name of the autotroph
+            longname : Long name of this autotroph
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
@@ -891,9 +891,9 @@ PFT_derived_types :
                ((autotroph_sname)) == "diat" : Diatom
                ((autotroph_sname)) == "diaz" : Diazotroph
          temp_func_form_opt:
-            longname : Option for the temperature scaling functional form
+            longname : Option for the temperature scaling functional form for this autotroph
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : string
             valid_values :
                - q_10
@@ -905,40 +905,40 @@ PFT_derived_types :
                ((autotroph_sname)) == "diat" : q_10
                ((autotroph_sname)) == "diaz" : q_10
          Nfixer :
-            longname : Flag set to true if autotroph fixes nitrogen
+            longname : Control whether this autotroph fixes nitrogen
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : logical
             default_value :
                default : .false.
                ((autotroph_sname)) == "diaz" : .true.
          imp_calcifier :
-            longname : Flag set to true if autotroph implicitly handles calcification
+            longname : Control whether this autotroph implicitly handles calcification
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : logical
             default_value :
                default : .false.
                ((autotroph_sname)) == "sp" : .true.
          exp_calcifier :
-            longname : Flag set to true if autotroph explicitly handles calcification
+            longname : Control whether this autotroph explicitly handles calcification
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : logical
             default_value :
                default : .false.
          silicifier :
-            longname : Flag set to true if autotroph is a silicifier
+            longname : Control whether this autotroph is a silicifier
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : logical
             default_value :
                default : .false.
                ((autotroph_sname)) == "diat" : .true.
          is_carbon_limited :
-            longname : Flag set to true if autotroph is carbon limited
+            longname : Control whether this autotroph is carbon limited
             subcategory : 10. autotrophs
-            units : non-numeric
+            units : unitless
             datatype : logical
             default_value : .false.
          kFe :
@@ -1024,7 +1024,7 @@ PFT_derived_types :
          SiOpt :
             longname : Si threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1032,7 +1032,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "diat" : 10.0
                ((autotroph_sname)) == "diaz" : 0.0
          gQfe_max :
-            longname : Initial Fe/C ratio for growth
+            longname : Maximum Fe/C ratio for growth
             subcategory : 10. autotrophs
             units : unitless
             datatype : real
@@ -1054,7 +1054,7 @@ PFT_derived_types :
          FeOpt :
             longname : Fe threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1063,7 +1063,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "diaz" : 2.0e-3
          gQp_max :
             dependencies : lvariable_PtoC
-            longname : Initial P/C ratio for growth
+            longname : Maximum P/C ratio for growth
             subcategory : 10. autotrophs
             units : unitless
             datatype : real
@@ -1087,7 +1087,7 @@ PFT_derived_types :
             dependencies : lvariable_PtoC
             longname : PO4 threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1098,7 +1098,7 @@ PFT_derived_types :
             dependencies : lvariable_NtoC
             longname : N threshold in uptake ratio computations
             subcategory : 10. autotrophs
-            units : unitless
+            units : nmol/cm^3
             datatype : real
             default_value :
                default : 1e34
@@ -1156,7 +1156,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "diat" : 0
                ((autotroph_sname)) == "diaz" : 0.001
          temp_thres :
-            longname : Temperature where concentration threshold and photosynthesis rate drops
+            longname : Temperature where concentration threshold and photosynthesis rate drop
             subcategory : 10. autotrophs
             units : degC
             datatype : real
@@ -1233,25 +1233,25 @@ PFT_derived_types :
          # (_* are not part of the type)
          _type_name : zooplankton_settings_type
          sname :
-            longname : Short name of the zooplankton
+            longname : Short name of this zooplankton
             subcategory : 11. zooplankton
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
                ((zooplankton_sname)) == "zoo" : zoo
          lname :
-            longname : Long name of the zooplankton
+            longname : Long name of this zooplankton
             subcategory : 11. zooplankton
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
                ((zooplankton_sname)) == "zoo" : Zooplankton
          temp_func_form_opt:
-            longname : Option for the temperature scaling functional form
+            longname : Option for the temperature scaling functional form for this zooplankton
             subcategory : 11. zooplankton
-            units : non-numeric
+            units : unitless
             datatype : string
             valid_values :
                - q_10
@@ -1271,7 +1271,7 @@ PFT_derived_types :
          z_mort2_0_per_day :
             longname : Quadratic mortality rate
             subcategory : 11. zooplankton
-            units : 1/day / (mmol/m^3)
+            units : (1/day)/(mmol/m^3)
             datatype : real
             default_value :
                default : 1e34
@@ -1285,7 +1285,7 @@ PFT_derived_types :
                default : 1e34
                ((zooplankton_sname)) == "zoo" : 0.0
          loss_thres :
-            longname : Zoo concentration where losses go to zero
+            longname : Concentration where losses go to zero
             subcategory : 11. zooplankton
             units : nmol/cm^3
             datatype : real
@@ -1308,9 +1308,9 @@ PFT_derived_types :
       datatype :
          _type_name : grazing_relationship_settings_type
          sname :
-            longname : Short name of the grazing relationship
+            longname : Short name of this grazing relationship
             subcategory : 12. grazing
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
@@ -1318,9 +1318,9 @@ PFT_derived_types :
                ((grazer_sname)) == "diat_zoo" : grz_diat_zoo
                ((grazer_sname)) == "diaz_zoo" : grz_diaz_zoo
          lname :
-            longname : Long name of the grazing relationship
+            longname : Long name of this grazing relationship
             subcategory : 12. grazing
-            units : non-numeric
+            units : unitless
             datatype : string
             default_value :
                default : UNSET
@@ -1349,7 +1349,7 @@ PFT_derived_types :
             _comment : 1 => Michaelis-Menten, 2 => Sigmoidal
             default_value : 1
          z_umax_0_per_day :
-            longname : Max zoo growth rate at tref
+            longname : Maximum zooplankton growth rate at Tref
             subcategory : 12. grazing
             units : 1/day
             datatype : real
@@ -1369,7 +1369,7 @@ PFT_derived_types :
                ((grazer_sname)) == "diat_zoo" : 1.2
                ((grazer_sname)) == "diaz_zoo" : 1.2
          graze_zoo :
-            longname : Routing of grazed term, remainder goes to dic
+            longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
             units : unitless
             datatype : real
@@ -1379,7 +1379,7 @@ PFT_derived_types :
                ((grazer_sname)) == "diat_zoo" : 0.25
                ((grazer_sname)) == "diaz_zoo" : 0.3
          graze_poc :
-            longname : Routing of grazed term, remainder goes to dic
+            longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
             units : unitless
             datatype : real
@@ -1389,7 +1389,7 @@ PFT_derived_types :
                ((grazer_sname)) == "diat_zoo" : 0.39
                ((grazer_sname)) == "diaz_zoo" : 0.1
          graze_doc :
-            longname : Routing of grazed term, remainder goes to dic
+            longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
             units : unitless
             datatype : real
@@ -1439,7 +1439,7 @@ tracer_dependent :
    tracer_restore_vars :
       longname : Tracer names for tracers that are restored
       subcategory : 20. tracer restoring
-      units : non-numeric
+      units : unitless
       datatype : string
       _array_shape : _tracer_list
       _is_allocatable : true
