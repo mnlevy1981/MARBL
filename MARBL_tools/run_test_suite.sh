@@ -79,7 +79,7 @@ cd ${MARBL_ROOT}/MARBL_tools
 STATUS=$(check_return $?)
 print_status "MARBL_generate_settings_file.py" >> ${RESULTS_CACHE}
 for shortname in cesm2.0 cesm2.1 cesm2.1+cocco latest latest+cocco latest+4p2z; do
-  (set -x ; ./MARBL_generate_settings_file.py -f ../defaults/json/settings_${shortname}.json -o marbl_${shortname}.settings)
+  (set -x ; ./MARBL_generate_settings_file.py -f ${MARBL_ROOT}/defaults/json/settings_${shortname}.json -o marbl_${shortname}.settings)
   STATUS=$(check_return $?)
   print_status "MARBL_generate_settings_file.py (${shortname})" >> ${RESULTS_CACHE}
 done
@@ -136,7 +136,7 @@ if [ "${STATUS}" == "PASS" ]; then
   STATUS=$(check_return $?)
   print_status "init.py" >> ${RESULTS_CACHE}
   # Initialize MARBL with settings from tests/input_files/settings/
-  for settingsfile in `find ../../input_files/settings -type f`; do
+  for settingsfile in `find ${MARBL_ROOT}/tests/input_files/settings -type f`; do
     if [ "`basename $settingsfile`" == "marbl_with_ladjust_bury_coeff.settings" ]; then
       continue
     fi
@@ -148,7 +148,7 @@ if [ "${STATUS}" == "PASS" ]; then
   for shortname in cesm2.0 cesm2.1 cesm2.1+cocco latest latest+cocco latest+4p2z; do
     if [ -f ${MARBL_ROOT}/MARBL_tools/marbl_${shortname}.settings ]; then
       cd ${MARBL_ROOT}/tests/regression_tests/init
-      (set -x ; ./init.py -s ../../../MARBL_tools/marbl_${shortname}.settings)
+      (set -x ; ./init.py -s ${MARBL_ROOT}/MARBL_tools/marbl_${shortname}.settings)
       STATUS=$(check_return $?)
       print_status "init.py (${shortname})" >> ${RESULTS_CACHE}
 
@@ -194,9 +194,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with 4p2z), compute surface fluxes and interior tendencies
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_4p2z_cgs.settings)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_4p2z_cgs.settings)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_4p2z_cgs.settings" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_4p2z_cgs.settings" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     # Compare netCDF output to baseline
@@ -215,9 +215,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with 4p2z), compute surface fluxes and interior tendencies in mks instead of cgs
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_4p2z_mks.settings -u mks)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_4p2z_mks.settings -u mks)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_4p2z_mks.settings -u mks" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_4p2z_mks.settings -u mks" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     cd ${MARBL_ROOT}/MARBL_tools
@@ -230,9 +230,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with abio tracers), compute surface fluxes and interior tendencies
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_abio_only.settings)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_abio_only.settings)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_abio_only.settings" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_abio_only.settings" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     # Compare netCDF output to baseline
@@ -251,9 +251,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with abio tracers), compute surface fluxes and interior tendencies in mks instead of cgs
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_abio_only.settings -u mks)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_abio_only.settings -u mks)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_abio_only.settings -u mks" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_abio_only.settings -u mks" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     cd ${MARBL_ROOT}/MARBL_tools
@@ -266,9 +266,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with ciso tracers), compute surface fluxes and interior tendencies
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_ciso.settings)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_ciso.settings)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_ciso.settings" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_ciso.settings" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     # Compare netCDF output to baseline
@@ -287,9 +287,9 @@ if [ "${STATUS}" == "PASS" ]; then
 
   # Initialize MARBL (with ciso tracers), compute surface fluxes and interior tendencies in mks instead of cgs
   cd ${MARBL_ROOT}/tests/regression_tests/call_compute_subroutines
-  (set -x ; ./call_compute_subroutines.py -s ../../input_files/settings/marbl_with_ciso.settings -u mks)
+  (set -x ; ./call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_ciso.settings -u mks)
   STATUS=$(check_return $?)
-  print_status "call_compute_subroutines.py -s ../../input_files/settings/marbl_with_ciso.settings -u mks" >> ${RESULTS_CACHE}
+  print_status "call_compute_subroutines.py -s ${MARBL_ROOT}/tests/input_files/settings/marbl_with_ciso.settings -u mks" >> ${RESULTS_CACHE}
 
   if [ "${STATUS}" == "PASS" ]; then
     cd ${MARBL_ROOT}/MARBL_tools
