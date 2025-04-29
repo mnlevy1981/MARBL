@@ -99,6 +99,7 @@ if __name__ == "__main__":
                 if fortran_dict['units'] != json_dict['units']:
                     logger.info(f'Variable {varname} has units "{fortran_dict["units"]}"' +
                                 f' in Fortran and "{json_dict["units"]}" in JSON')
+                    error_found = True
                 if fortran_dict['longname'] != json_dict['longname']:
                     logger.info(f'Variable {varname} has longname "{fortran_dict["longname"]}"' +
                                 f' in Fortran and "{json_dict["longname"]}" in JSON')

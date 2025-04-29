@@ -18,7 +18,7 @@
 # All variables need to provide the following metadata:
 # 1. longname: a description of the variable
 # 2. subcategory: when writing parameters to the log, MARBL will group variables by subcategory
-# 3. units: physical units (use "unitless" for pure numbers, strings, and logicals)
+# 3. units: physical units (use '1' for pure numbers and '' for strings and logicals)
 # 4. datatype: integer, real, logical, or string
 # 5. default_value: Value to use unless overwritten by the MARBL input file
 #       NOTE: some parameters provide different default values for different configurations;
@@ -253,7 +253,7 @@ tracer_modules :
    base_bio_on :
       longname : Control whether the base ecosystem tracer module is active
       subcategory : 1. tracer modules
-      units : unitless
+      units : ''
       datatype : logical
       default_value :
          default : .true.
@@ -262,7 +262,7 @@ tracer_modules :
    abio_dic_on :
       longname : Control whether abiotic carbon tracer module is active
       subcategory : 1. tracer modules
-      units : unitless
+      units : ''
       datatype : logical
       default_value :
          default : .false.
@@ -271,7 +271,7 @@ tracer_modules :
    ciso_on :
       longname : Control whether CISO tracer module is active
       subcategory : 1. tracer modules
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
       _append_to_config_keywords : true
@@ -285,7 +285,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Define how PFTs are initialized
       subcategory : 2. config PFTs
-      units : unitless
+      units : ''
       datatype : string
       default_value : CESM2
       valid_values :
@@ -306,53 +306,53 @@ general_parms :
    lsource_sink :
       longname : Control which portions of code are executed (useful for debugging)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
    ciso_lsource_sink :
       dependencies : ciso_on
       longname : Control which portions of the carbon isotope code are executed (useful for debugging)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
    lcheck_forcing :
       longname : Control whether consistency checks are performed on forcing input (useful for debugging)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
    lecovars_full_depth_tavg :
       longname : If .false., MARBL will recommend truncating the column for some diagnostics
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
    lflux_gas_o2 :
       dependencies : base_bio_on
       longname : Run O2 gas flux portion of the code
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
    lflux_gas_co2 :
       longname : Run CO2 gas flux portion of the code
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
    lcompute_nhx_surface_emis :
       dependencies : base_bio_on
       longname : Control if NHx emissions are computed
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
    lvariable_PtoC :
       dependencies : base_bio_on
       longname : Control if PtoC ratios in autotrophs vary
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .true.
       _append_to_config_keywords : true
@@ -360,7 +360,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Control if NtoC ratios in autotrophs vary
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
       _append_to_config_keywords : true
@@ -368,7 +368,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Control if bury coefficients are adjusted (rather than constant)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
       _append_to_config_keywords : true
@@ -376,28 +376,28 @@ general_parms :
       dependencies : base_bio_on
       longname : Apply o2_consumption_scalef to o2 consumption (and request it as a forcing)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
    lp_remin_scalef :
       dependencies : base_bio_on
       longname : Apply p_remin_scalef to particulate remin (and request it as a forcing)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
    labio_derivative_diags :
       dependencies : abio_dic_on
       longname : Control whether derivative diagnostics are computed in abiotic surface flux (useful for Newton-Krylov)
       subcategory : 3. config flags
-      units : unitless
+      units : ''
       datatype : logical
       default_value : .false.
    bftt_dz_sum_thres:
       dependencies : base_bio_on
       longname : MARBL will abort if abs(1 - sum(bot_flux_to_tend)) exceeds this threshold
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 1.0e-14
    Jint_Ctot_thres_molpm2pyr :
@@ -411,42 +411,42 @@ general_parms :
       dependencies : base_bio_on
       longname : initial Si/C ratio for growth
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.137
    gQsi_max :
       dependencies : base_bio_on
       longname : max Si/C ratio for growth
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.685
    gQsi_min :
       dependencies : base_bio_on
       longname : min Si/C ratio for growth
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.0457
    gQ_Fe_kFe_thres :
       dependencies : base_bio_on
       longname : Fe:kFe ratio threshold in uptake ratio computations
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 10.0
    gQ_Si_kSi_thres :
       dependencies : base_bio_on
       longname : Si:kSi ratio threshold in uptake ratio computations
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 5.0
    parm_Fe_bioavail :
       dependencies : base_bio_on
       longname : Fraction of Fe flux that is bioavailable
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 1.0
    particulate_flux_ref_depth :
@@ -488,14 +488,14 @@ general_parms :
       dependencies : base_bio_on
       longname : Fraction of loss to DOC that is routed directly to DIC
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 0.94
    parm_init_POC_bury_coeff :
       dependencies : base_bio_on
       longname : Initial scale factor for burial of POC
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : # default value is resolution dependent!
          default : 1.1
@@ -504,7 +504,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Initial scale factor for burial of POP
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : # default value is resolution dependent!
          default : 1.1
@@ -513,7 +513,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Initial scale factor for burial of bSi
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : # default value is resolution dependent!
          default : 1.0
@@ -543,7 +543,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Fe-binding ligand bacterial degradation base rate coefficient
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.000094
    parm_Fe_desorption_rate0 :
@@ -557,7 +557,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Fraction of sp production as CaCO3 production
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : # default value is resolution dependent!
          default : 0.07
@@ -580,14 +580,14 @@ general_parms :
       dependencies : base_bio_on
       longname : SiO2 gamma (fraction of production -> hard subclass)
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.1
    parm_hPOC_SiO2_ratio :
       dependencies : base_bio_on
       longname : hPOC to SiO2 ratio
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.05
    parm_CaCO3_diss :
@@ -601,21 +601,21 @@ general_parms :
       dependencies : base_bio_on
       longname : CaCO3 gamma (fraction of production -> hard subclass)
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.1
    parm_hPOC_CaCO3_ratio :
       dependencies : base_bio_on
       longname : hPOC to CaCO3 ratio
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.05
    parm_hPOC_dust_ratio :
       dependencies : base_bio_on
       longname : hPOC to dust ratio
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 0.05
    o2_sf_o2_range_hi :
@@ -636,14 +636,14 @@ general_parms :
       dependencies : base_bio_on
       longname : o2_scalefactor constant for O2 less than o2_sf_o2_range_lo
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 3.0
    parm_sed_denitrif_coeff :
       dependencies : base_bio_on
       longname : Global scaling factor for sed_denitrif
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value :
          default : 1
@@ -671,7 +671,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Prescribed scale length values
       subcategory : 6. Scale lengths
-      units : unitless
+      units : '1'
       datatype : real
       _array_shape : 4
       default_value :
@@ -689,7 +689,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Option for threshold of CaCO3 burial
       subcategory : 5. general parameters
-      units : unitless
+      units : ''
       datatype : string
       default_value : omega_calc
       valid_values :
@@ -706,49 +706,49 @@ general_parms :
       dependencies : base_bio_on
       longname : omega calcite threshold for CaCO3 burial when opt = 'omega_calc'
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 1.0
    PON_bury_coeff :
       dependencies : base_bio_on
-      longname : Scale factor for burial of PON
+      longname : Scale factor applied to POC burial coefficient to compute PON burial coefficient
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 0.5
    POM_bury_frac_max :
       dependencies : base_bio_on
       longname : maximum bury fraction for POM
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 0.8
    bSi_bury_frac_max :
       dependencies : base_bio_on
       longname : maximum bury fraction for bSi
       subcategory : 5. general parameters (bury coeffs)
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 1.0
    ciso_fract_factors :
       dependencies : ciso_on
       longname : Option for which biological fractionation calculation to use
       subcategory : 5. general parameters
-      units : unitless
+      units : ''
       datatype : string
       default_value : Laws
    auto_mort2_exp :
       dependencies : base_bio_on
       longname : Value of power loss exponent for autotrophs
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 1.75
    zoo_mort2_exp :
       dependencies : base_bio_on
       longname : Value of power loss exponent for zooplankton
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 1.5
    QCaCO3_max :
@@ -762,7 +762,7 @@ general_parms :
       dependencies : base_bio_on
       longname : Fraction of spCaCO3 grazing which is remineralized in zooplankton guts
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 0.33
 
@@ -775,7 +775,7 @@ general_parms2 :
       dependencies : base_bio_on
       longname : Source of initial burial coefficient
       subcategory : 4. config strings
-      units : unitless
+      units : ''
       datatype : string
       default_value :
          # Note: this relies on SAVED_STATE_VARS_SOURCE appearing in _config_keyword
@@ -791,7 +791,7 @@ general_parms2 :
       dependencies : base_bio_on
       longname : Dissolved carbon:phosphorus Redfield Ratio
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value :
          default : 117
@@ -800,14 +800,14 @@ general_parms2 :
       dependencies : base_bio_on
       longname : Dissolved nitrogen:phosphorus Redfield Ratio
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 16
    parm_Remin_D_O2_P :
       dependencies : base_bio_on
       longname : Dissolved oxygen:phosphorus Redfield Ratio for Remineralization
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value :
          default : 138
@@ -816,7 +816,7 @@ general_parms2 :
       dependencies : base_bio_on
       longname : iron:carbon Redfield Ratio
       subcategory : 5. general parameters
-      units : unitless
+      units : '1'
       datatype : real
       default_value : 3e-6
 
@@ -830,7 +830,7 @@ PFT_counts :
       dependencies : base_bio_on
       longname : Number of autotroph classes
       subcategory : 2. config PFTs
-      units : unitless
+      units : ''
       datatype : integer
       default_value :
          default : 1
@@ -841,7 +841,7 @@ PFT_counts :
       dependencies : base_bio_on
       longname : Number of zooplankton classes
       subcategory : 2. config PFTs
-      units : unitless
+      units : ''
       datatype : integer
       default_value :
          default : 1
@@ -850,7 +850,7 @@ PFT_counts :
       dependencies : base_bio_on
       longname : Number of grazer prey classes
       subcategory : 2. config PFTs
-      units : unitless
+      units : ''
       datatype : integer
       default_value :
          default : 1
@@ -871,7 +871,7 @@ PFT_derived_types :
          sname :
             longname : Short name of this autotroph
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -881,7 +881,7 @@ PFT_derived_types :
          lname :
             longname : Long name of this autotroph
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -891,7 +891,7 @@ PFT_derived_types :
          temp_func_form_opt:
             longname : Option for the temperature scaling functional form for this autotroph
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : string
             valid_values :
                - q_10
@@ -905,7 +905,7 @@ PFT_derived_types :
          Nfixer :
             longname : Control whether this autotroph fixes nitrogen
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : logical
             default_value :
                default : .false.
@@ -913,7 +913,7 @@ PFT_derived_types :
          imp_calcifier :
             longname : Control whether this autotroph implicitly handles calcification
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : logical
             default_value :
                default : .false.
@@ -921,14 +921,14 @@ PFT_derived_types :
          exp_calcifier :
             longname : Control whether this autotroph explicitly handles calcification
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : logical
             default_value :
                default : .false.
          silicifier :
             longname : Control whether this autotroph is a silicifier
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : logical
             default_value :
                default : .false.
@@ -936,7 +936,7 @@ PFT_derived_types :
          is_carbon_limited :
             longname : Control whether this autotroph is carbon limited
             subcategory : 10. autotrophs
-            units : unitless
+            units : ''
             datatype : logical
             default_value : .false.
          kFe :
@@ -1012,7 +1012,7 @@ PFT_derived_types :
          Qp_fixed :
             longname : P/C ratio when using fixed P/C ratios
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1032,7 +1032,7 @@ PFT_derived_types :
          gQfe_max :
             longname : Maximum Fe/C ratio for growth
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1042,7 +1042,7 @@ PFT_derived_types :
          gQfe_min :
             longname : Minimum Fe/C ratio for growth
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1063,7 +1063,7 @@ PFT_derived_types :
             dependencies : lvariable_PtoC
             longname : Maximum P/C ratio for growth
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1074,7 +1074,7 @@ PFT_derived_types :
             dependencies : lvariable_PtoC
             longname : Minimum P/C ratio for growth
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1206,7 +1206,7 @@ PFT_derived_types :
          loss_poc :
             longname : Routing of loss term
             subcategory : 10. autotrophs
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1233,7 +1233,7 @@ PFT_derived_types :
          sname :
             longname : Short name of this zooplankton
             subcategory : 11. zooplankton
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -1241,7 +1241,7 @@ PFT_derived_types :
          lname :
             longname : Long name of this zooplankton
             subcategory : 11. zooplankton
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -1249,7 +1249,7 @@ PFT_derived_types :
          temp_func_form_opt:
             longname : Option for the temperature scaling functional form for this zooplankton
             subcategory : 11. zooplankton
-            units : unitless
+            units : ''
             datatype : string
             valid_values :
                - q_10
@@ -1308,7 +1308,7 @@ PFT_derived_types :
          sname :
             longname : Short name of this grazing relationship
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -1318,7 +1318,7 @@ PFT_derived_types :
          lname :
             longname : Long name of this grazing relationship
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : string
             default_value :
                default : UNSET
@@ -1328,21 +1328,21 @@ PFT_derived_types :
          auto_ind_cnt :
             longname : Number of autotrophs being grazed
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : integer
             default_value :
                default : 1
          zoo_ind_cnt :
             longname : Number of zooplankton being grazed
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : integer
             default_value :
                default : 0
          grazing_function :
             longname : Functional form of grazing parameterization
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : integer
             _comment : 1 => Michaelis-Menten, 2 => Sigmoidal
             default_value : 1
@@ -1369,7 +1369,7 @@ PFT_derived_types :
          graze_zoo :
             longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1379,7 +1379,7 @@ PFT_derived_types :
          graze_poc :
             longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1389,7 +1389,7 @@ PFT_derived_types :
          graze_doc :
             longname : Routing of grazed term, remainder goes to DIC
             subcategory : 12. grazing
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1399,7 +1399,7 @@ PFT_derived_types :
          f_zoo_detr :
             longname : Fraction of zoo losses to detrital
             subcategory : 12. grazing
-            units : unitless
+            units : '1'
             datatype : real
             default_value :
                default : 1e34
@@ -1412,7 +1412,7 @@ PFT_derived_types :
             _is_allocatable : true
             longname : Indices of autotrophs being grazed
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : integer
             default_value :
                default : 0
@@ -1425,7 +1425,7 @@ PFT_derived_types :
             _is_allocatable : true
             longname : Indices of zooplankton being grazed
             subcategory : 12. grazing
-            units : unitless
+            units : ''
             datatype : integer
             default_value : 0
 
@@ -1437,7 +1437,7 @@ tracer_dependent :
    tracer_restore_vars :
       longname : Tracer names for tracers that are restored
       subcategory : 20. tracer restoring
-      units : unitless
+      units : ''
       datatype : string
       _array_shape : _tracer_list
       _is_allocatable : true

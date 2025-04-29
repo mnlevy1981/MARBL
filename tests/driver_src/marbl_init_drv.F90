@@ -86,7 +86,7 @@ Contains
         call marbl_instance%inquire_settings_metadata(n, sname=sname, lname=lname, units=units)
         write(10, "(A,':')") trim(sname)
         write(10, "(2A)") '  longname: ', trim(lname)
-        write(10, "(2A)") '  units: ', trim(units)
+        write(10, "(3A)") "  units: '", trim(units), "'"
       end do
     end if
 
