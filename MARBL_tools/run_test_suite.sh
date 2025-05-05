@@ -145,6 +145,7 @@ if [ "${STATUS}" == "PASS" ]; then
     print_status "init.py ($(basename ${settingsfile}))" >> ${RESULTS_CACHE}
   done
   # Initialize MARBL with settings generated from every JSON file
+  # Compare metadata from marbl_settings_type in Fortran to what is in JSON file
   for shortname in cesm2.0 cesm2.1 cesm2.1+cocco latest latest+cocco latest+4p2z; do
     if [ -f ${MARBL_ROOT}/MARBL_tools/marbl_${shortname}.settings ]; then
       cd ${MARBL_ROOT}/tests/regression_tests/init
@@ -152,10 +153,12 @@ if [ "${STATUS}" == "PASS" ]; then
       STATUS=$(check_return $?)
       print_status "init.py (${shortname})" >> ${RESULTS_CACHE}
 
-      cd ${MARBL_ROOT}/MARBL_tools/
-      (set -x ; ./settings_metadata_check.py -f ../defaults/json/settings_${shortname}.json)
-      STATUS=$(check_return $?)
-      print_status "Compare settings metadata (${shortname})" >> ${RESULTS_CACHE}
+      if [ "${STATUS}" == "PASS" ]; then
+        cd ${MARBL_ROOT}/MARBL_tools/
+        (set -x ; ./settings_metadata_check.py -f ../defaults/json/settings_${shortname}.json)
+        STATUS=$(check_return $?)
+        print_status "Compare settings metadata (${shortname})" >> ${RESULTS_CACHE}
+      fi
     fi
   done
 
