@@ -90,6 +90,7 @@ module marbl_interior_tendency_mod
   public  :: marbl_interior_tendency_compute
   public  :: marbl_interior_tendency_adjust_bury_coeff
   public  :: marbl_interior_tendency_compute_totChl
+  public  :: marbl_interior_tendency_setup_local_tracers
 
 contains
 
@@ -235,8 +236,8 @@ contains
     !  create local copies of model tracers
     !-----------------------------------------------------------------------
 
-    call setup_local_tracers(domain%kmt, marbl_tracer_indices, tracers(:,:), autotroph_local, &
-         tracer_local(:,:), zooplankton_local)
+    call marbl_interior_tendency_setup_local_tracers(domain%kmt, marbl_tracer_indices, &
+         tracers(:,:), autotroph_local, tracer_local(:,:), zooplankton_local)
 
     !-----------------------------------------------------------------------
     !  Set all interior diagnostics to zero
@@ -789,8 +790,8 @@ contains
 
   !***********************************************************************
 
-  subroutine setup_local_tracers(column_kmt, marbl_tracer_indices, tracers, &
-       autotroph_local, tracer_local, zooplankton_local)
+  subroutine marbl_interior_tendency_setup_local_tracers(column_kmt, marbl_tracer_indices, &
+       tracers, autotroph_local, tracer_local, zooplankton_local)
 
     !-----------------------------------------------------------------------
     !  create local copies of model tracers
@@ -890,7 +891,7 @@ contains
     ! autotroph consistency check
     call autotroph_zero_consistency_enforce(column_kmt, marbl_tracer_indices, autotroph_local)
 
-  end subroutine setup_local_tracers
+  end subroutine marbl_interior_tendency_setup_local_tracers
 
   !***********************************************************************
 
