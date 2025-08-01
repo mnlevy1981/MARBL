@@ -3303,6 +3303,7 @@ contains
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, POP)
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, PON)
         dzr_loc = c0
+        Lig_prod(k) = c0
 
      endif
 
@@ -3392,7 +3393,6 @@ contains
      P_iron%sed_loss(k)          = c0
      dust%sed_loss(k)            = c0
      denitrif_C_N(k)             = 0.9375_r8
-     Lig_prod(k)                 = c0
 
      if (k == column_kmt) then
 
