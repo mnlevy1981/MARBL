@@ -1093,8 +1093,14 @@ contains
 
       do k=1,dkm
         if (ph_prev_col(k)  /= c0) then
-          ph_lower_bound(k) = ph_prev_col(k) - del_ph
-          ph_upper_bound(k) = ph_prev_col(k) + del_ph
+          if (domain%delta_z(k) > 1._r8 * unit_system%cm2len) then
+            ph_lower_bound(k) = ph_prev_col(k) - del_ph
+            ph_upper_bound(k) = ph_prev_col(k) + del_ph
+          else
+            ! Double initial bracket width for very thin layers
+            ph_lower_bound(k) = ph_prev_col(k) - 2._r8 * del_ph
+            ph_upper_bound(k) = ph_prev_col(k) + 2._r8 * del_ph
+          end if
         else
           ph_lower_bound(k) = phlo_3d_init
           ph_upper_bound(k) = phhi_3d_init
@@ -1118,8 +1124,14 @@ contains
       do k=1,dkm
         ph_prev_col(k) = pH(k)
         if (ph_prev_alt_co2_col(k) /= c0) then
-          ph_lower_bound(k) = ph_prev_alt_co2_col(k) - del_ph
-          ph_upper_bound(k) = ph_prev_alt_co2_col(k) + del_ph
+          if (domain%delta_z(k) > 1._r8 * unit_system%cm2len) then
+            ph_lower_bound(k) = ph_prev_col(k) - del_ph
+            ph_upper_bound(k) = ph_prev_col(k) + del_ph
+          else
+            ! Double initial bracket width for very thin layers
+            ph_lower_bound(k) = ph_prev_col(k) - 2._r8 * del_ph
+            ph_upper_bound(k) = ph_prev_col(k) + 2._r8 * del_ph
+          end if
         else
           ph_lower_bound(k) = phlo_3d_init
           ph_upper_bound(k) = phhi_3d_init
