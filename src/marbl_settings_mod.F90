@@ -200,8 +200,9 @@ module marbl_settings_mod
               thres_z2_auto, & ! autotroph threshold = 0 for z deeper than this (L)
               thres_z1_zoo,  & ! zooplankton threshold = C_loss_thres for z shallower than this (L)
               thres_z2_zoo,  & ! zooplankton threshold = 0 for z deeper than this (L)
-              dust_Fe_scavenge_scale,  & !dust scavenging scale factor
-              dust_to_Fe
+              dust_Fe_scavenge_scale,  & ! dust scavenging scale factor
+              dust_to_Fe,    &
+              Fe_to_dust
 
   !---------------------------------------------------------------------------------------------
   !  Variables defined in marbl_settings_define_general_parms, marbl_settings_define_PFT_counts,
@@ -294,6 +295,8 @@ module marbl_settings_mod
        QCaCO3_max,                 & ! Max CaCO3/C ratio for calcifiers
        f_graze_CaCO3_remin,        & ! Fraction of spCaCO3 grazing which is remineralized in zooplankton guts
        bury_coeff_rmean_timescale_years, & ! Running mean time scale for bury coefficients
+       dust_per_unit_fesedflux,    & ! scale factor for converting fesedflux to dust%prod (1)
+       dust_per_unit_feventflux,   & ! Scale factor for converting feventflux to dust%prod (1)
        parm_Red_D_C_P,             & ! Dissolved carbon:phosphorus Redfield Ratio
        parm_Red_D_N_P,             & ! Dissolved nitrogen:phosphorus Redfield Ratio
        parm_Remin_D_O2_P,          & ! Dissolved oxygen:phosphorus Redfield Ratio for Remineralization
@@ -458,6 +461,8 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     o2_sf_val_lo_o2               =  2.6_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_sed_denitrif_coeff       = 1.0_r8          ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     bury_coeff_rmean_timescale_years = 10.0_r8      ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    dust_per_unit_fesedflux       = 9.9e2_r8        ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
+    dust_per_unit_feventflux      = 9.9_r8         ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_scalelen_z    = (/ 100.0e2_r8, 250.0e2_r8, 500.0e2_r8, 1000.0e2_r8 /)  ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     parm_scalelen_vals = (/     1.0_r8,     3.6_r8,     4.7_r8,      4.8_r8 /)  ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
     caco3_bury_thres_opt          = 'omega_calc'    ! CESM USERS - DO NOT CHANGE HERE! POP calls put_setting() for this var, see CESM NOTE above
@@ -1149,6 +1154,24 @@ end subroutine marbl_settings_set_defaults_tracer_modules
       units     = 'years'
       datatype  = 'real'
       rptr      => bury_coeff_rmean_timescale_years
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'dust_per_unit_fesedflux'
+      lname     = 'Scale factor for converting fesedflux to dust%prod'
+      units     = '1'
+      datatype  = 'real'
+      rptr      => dust_per_unit_fesedflux
+      call this%add_var(sname, lname, units, datatype, category,       &
+                          marbl_status_log, rptr=rptr)
+      call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
+
+      sname     = 'dust_per_unit_feventflux'
+      lname     = 'Scale factor for converting feventflux to dust%prod'
+      units     = '1'
+      datatype  = 'real'
+      rptr      => dust_per_unit_feventflux
       call this%add_var(sname, lname, units, datatype, category,       &
                           marbl_status_log, rptr=rptr)
       call check_and_log_add_var_error(marbl_status_log, sname, subname, labort_marbl_loc)
@@ -2498,6 +2521,7 @@ end subroutine marbl_settings_set_defaults_tracer_modules
     dust_to_Fe = 0.035_r8 / molw_Fe
     ! mol -> mmol and 1/g -> 1/kg for mks; mol -> nmol for cgs
     dust_to_Fe = dust_to_Fe * this%mass2g * this%mol_prefix
+    Fe_to_dust = 1._r8 / dust_to_Fe
 
     ! Update unit_system module variable
     this%unit_system = trim(unit_system)

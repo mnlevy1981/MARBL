@@ -1262,6 +1262,22 @@
          "subcategory": "3. config flags",
          "units": ""
       },
+      "dust_per_unit_fesedflux": {
+         "datatype": "real",
+         "default_value": 990,
+         "dependencies": "base_bio_on",
+         "longname": "Scale factor for converting fesedflux to dust%prod",
+         "subcategory": "5. general parameters",
+         "units": 1
+      },
+      "dust_per_unit_feventflux": {
+         "datatype": "real",
+         "default_value": 9.9,
+         "dependencies": "base_bio_on",
+         "longname": "Scale factor for converting feventflux to dust%prod",
+         "subcategory": "5. general parameters",
+         "units": 1
+      },
       "f_graze_CaCO3_remin": {
          "datatype": "real",
          "default_value": 0.5,

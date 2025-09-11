@@ -50,7 +50,8 @@ module marbl_interior_tendency_mod
   use marbl_settings_mod, only : ladjust_bury_coeff
   use marbl_settings_mod, only : autotroph_settings
   use marbl_settings_mod, only : zooplankton_settings
-  use marbl_settings_mod, only : dust_to_Fe
+  use marbl_settings_mod, only : dust_per_unit_fesedflux
+  use marbl_settings_mod, only : dust_per_unit_feventflux
   use marbl_settings_mod, only : parm_Red_Fe_C
   use marbl_settings_mod, only : Q
   use marbl_settings_mod, only : parm_scalelen_z
@@ -420,7 +421,7 @@ contains
 
     do k = 1, km
 
-       call compute_scavenging(k, km, marbl_tracer_indices, tracer_local(:,:), &
+       call compute_scavenging(domain, k, km, marbl_tracer_indices, tracer_local(:,:), &
             POC, P_CaCO3, P_SiO2, fesedflux(:), feventflux(:), dust, &
             Fefree(k), Fe_scavenge_rate(k), Fe_scavenge(k), Lig_scavenge(k), &
             marbl_status_log)
@@ -2469,8 +2470,8 @@ contains
 
   !***********************************************************************
 
-  subroutine compute_scavenging(k, km, marbl_tracer_indices, tracer_local, POC, P_CaCO3, &
-       P_SiO2, fesedflux, feventflux, dust, Fefree, Fe_scavenge_rate, Fe_scavenge, &
+  subroutine compute_scavenging(domain, k, km, marbl_tracer_indices, tracer_local, POC, &
+       P_CaCO3, P_SiO2, fesedflux, feventflux, dust, Fefree, Fe_scavenge_rate, Fe_scavenge, &
        Lig_scavenge, marbl_status_log)
 
     use marbl_constants_mod, only : c3, c4
@@ -2479,8 +2480,9 @@ contains
     use marbl_settings_mod , only : parm_Lig_scavenge_rate0_yps
     use marbl_settings_mod , only : parm_FeLig_scavenge_rate0_yps
     use marbl_settings_mod , only : dust_Fe_scavenge_scale
-    use marbl_settings_mod , only : dust_to_Fe
+    use marbl_settings_mod , only : Fe_to_dust
 
+    type(marbl_domain_type),            intent(in)    :: domain
     integer,                            intent(in)    :: k
     integer,                            intent(in)    :: km
     type(marbl_tracer_index_type),      intent(in)    :: marbl_tracer_indices
@@ -2518,6 +2520,8 @@ contains
     real(kind=r8), parameter :: Lig2 = 0.002_r8      ! Lig2 are present everywhere at 2nM concentration
     integer                  :: n                    ! Newton's method loop index
     logical (log_kind)       :: Newton_convergence   ! has Newton's method converged
+    real(r8)                 :: dz_loc               ! dz at a particular i, j location
+    real(r8)                 :: dzr_loc              ! dzr at a particular i, j location
     real(r8)                 :: FeLig2               ! iron bound to ligand 2
     real(r8)                 :: Fefree_inc           ! increment in free iron in Newton's method
     real(r8)                 :: p0,p1,p2,p3          ! polynomial coefficients of Fefree_fcn
@@ -2525,11 +2529,15 @@ contains
     real(r8)                 :: dFefree_fcn          ! derivative of Fefree_fcn wrt Fefree
 
     associate(&
-         Fe_loc  => tracer_local(marbl_tracer_indices%Fe_ind, :), &
-         Lig_loc => tracer_local(marbl_tracer_indices%Lig_ind, :), &
-         DOC_loc => tracer_local(marbl_tracer_indices%DOC_ind, :), &
-         DOCr_loc => tracer_local(marbl_tracer_indices%DOCr_ind, :) &
+         Fe_loc   => tracer_local(marbl_tracer_indices%Fe_ind, :),   &
+         Lig_loc  => tracer_local(marbl_tracer_indices%Lig_ind, :),  &
+         DOC_loc  => tracer_local(marbl_tracer_indices%DOC_ind, :),  &
+         DOCr_loc => tracer_local(marbl_tracer_indices%DOCr_ind, :), &
+         delta_z  => domain%delta_z                                  &
          )
+
+      dz_loc = delta_z(k)
+      dzr_loc = c1 / dz_loc
 
       !-----------------------------------------------------------------------
       !  compute how much iron is bound to ligand
@@ -2665,20 +2673,19 @@ contains
       ! scavenging of FeLig2 is not implemented
       !-----------------------------------------------------------------------
 
-      dust%prod(k) = (fesedflux(k)/dust_to_Fe * 9.9e3_r8) + (feventflux(k)/dust_to_Fe * 99.0_r8)
+      dust%prod(k) = ((fesedflux(k) * Fe_to_dust * dust_per_unit_fesedflux) &
+                   + (feventflux(k) * Fe_to_dust * dust_per_unit_feventflux)) * dzr_loc
 
       ! sinking_mass: ng/cm^2/s in cgs, mg/m^2/s in mks
       sinking_mass = (POC%sflux_in(k)     + POC%hflux_in(k)    ) * 24.02_r8 &
                    + (P_CaCO3%sflux_in(k) + P_CaCO3%hflux_in(k)) * P_CaCO3%mass &
                    + (P_SiO2%sflux_in(k)  + P_SiO2%hflux_in(k) ) * P_SiO2%mass &
-                   + (dust%sflux_in(k) + dust%hflux_in(k) + dust%prod(k)) * dust_Fe_scavenge_scale
+                   + (dust%sflux_in(k) + dust%hflux_in(k) + dust%prod(k) * dz_loc) * dust_Fe_scavenge_scale
 
 
       if ((DOC_loc(k) .gt. c0) .and. (DOCr_loc(k) .gt. c0)) then
         sinking_mass = sinking_mass * (((DOC_loc(k) * 2.0_r8) + DOCr_loc(k)) / DOCr_loc(k))
       endif
-
-
 
       Fe_scavenge_rate    = parm_Fe_scavenge_rate0_yps * sinking_mass
       Lig_scavenge_rate   = parm_Lig_scavenge_rate0_yps * sinking_mass
@@ -2910,6 +2917,7 @@ contains
      use marbl_settings_mod, only : o2_sf_o2_range_hi
      use marbl_settings_mod, only : o2_sf_o2_range_lo
      use marbl_settings_mod, only : o2_sf_val_lo_o2
+     use marbl_settings_mod , only : dust_to_Fe
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_CaCO3_bury
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_POC_bury
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_POP_bury
@@ -3097,12 +3105,11 @@ contains
         P_SiO2%hflux_out(k) = P_SiO2%hflux_in(k) * DECAY_Hard + &
              P_SiO2%prod(k) * (P_SiO2%gamma * dz_loc)
 
-        dust%sflux_out(k) = dust%sflux_in(k) * decay_dust
+        dust%sflux_out(k) = dust%sflux_in(k) * decay_dust + &
+             dust%prod(k) * ((c1 - dust%gamma) * (c1 - decay_dust) * dust_diss)
 
-        dust%hflux_in(k) = dust%hflux_in(k) + dust%prod(k)
-
-        dust%hflux_out(k) = dust%hflux_in(k) * DECAY_HardDust
-
+        dust%hflux_out(k) = dust%hflux_in(k) * DECAY_HardDust + &
+             dust%prod(k) * (dust%gamma * dz_loc)
 
         !-----------------------------------------------------------------------
         !  Compute how much POC_PROD is available for deficit reduction
@@ -3194,13 +3201,14 @@ contains
              ((POC%sflux_in(k) - POC%sflux_out(k)) + &
              (POC%hflux_in(k) - POC%hflux_out(k))) * dzr_loc
 
-        dust%remin(k) = &
+        dust%remin(k) = dust%prod(k) + &
              ((dust%sflux_in(k) - dust%sflux_out(k)) + &
              (dust%hflux_in(k) - dust%hflux_out(k))) * dzr_loc
 
         !-----------------------------------------------------------------------
         !  Compute iron remineralization and flux out.
         !-----------------------------------------------------------------------
+
         P_iron%remin(k) = c0
 
         if (POC%sflux_in(k) + POC%hflux_in(k) == c0) then
@@ -3217,9 +3225,9 @@ contains
         !   it accounts for the increasing sinking speed of particles with depth
         !      less desorption with depth (as mean sinking speed increases)
         !-----------------------------------------------------------------------
-        dzr_mod = (dz_loc * unit_system%len2m)**(-0.343_r8)
+        dzr_mod = min(c1, (dz_loc * unit_system%len2m)**(-0.343_r8))
         P_iron%remin(k) = P_iron%remin(k) +                &
-             (P_iron%sflux_in(k) * parm_Fe_desorption_rate0 * dzr_mod)
+             P_iron%sflux_in(k) * parm_Fe_desorption_rate0 * dzr_mod
 
         P_iron%sflux_out(k) = P_iron%sflux_in(k) + dz_loc * &
              ((c1 - P_iron%gamma) * P_iron%prod(k) - P_iron%remin(k))
@@ -3242,7 +3250,6 @@ contains
 
 
         P_iron%hflux_out(k) = P_iron%hflux_in(k)
-
 
         !-----------------------------------------------------------------------
         !  add ligand source from vents, proportional to Fe input
@@ -3300,9 +3307,6 @@ contains
               ((POC%sflux_out(k)/(POP%sflux_out(k))) &
               + (c2 * PON%sflux_out(k)/(POP%sflux_out(k)) * 0.8_r8))
         endif
-
-
-
 
      else ! k > column_kmt
 
