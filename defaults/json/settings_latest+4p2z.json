@@ -1268,7 +1268,7 @@
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting fesedflux to dust%prod",
          "subcategory": "5. general parameters",
-         "units": 1
+         "units": "1"
       },
       "dust_per_unit_feventflux": {
          "datatype": "real",
@@ -1276,7 +1276,7 @@
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting feventflux to dust%prod",
          "subcategory": "5. general parameters",
-         "units": 1
+         "units": "1"
       },
       "f_graze_CaCO3_remin": {
          "datatype": "real",

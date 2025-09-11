@@ -665,6 +665,20 @@ general_parms :
       units : years
       datatype : real
       default_value : 10
+   dust_per_unit_fesedflux :
+      dependencies : base_bio_on
+      longname : Scale factor for converting fesedflux to dust%prod
+      subcategory : 5. general parameters
+      units : '1'
+      datatype : real
+      default_value : 990
+   dust_per_unit_feventflux :
+      dependencies : base_bio_on
+      longname : Scale factor for converting feventflux to dust%prod
+      subcategory : 5. general parameters
+      units : '1'
+      datatype : real
+      default_value : 9.9
    parm_scalelen_z :
       dependencies : base_bio_on
       longname : Depths of prescribed scale length values
@@ -1486,4 +1500,3 @@ tracer_dependent :
          GRID == "CESM_x3" : *CESM_TRACER_RESTORE
          GRID == "CESM_x1" : *CESM_TRACER_RESTORE
          not base_bio_on : ''
-         

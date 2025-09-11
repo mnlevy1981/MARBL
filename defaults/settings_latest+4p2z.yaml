@@ -674,14 +674,14 @@ general_parms :
       dependencies : base_bio_on
       longname : Scale factor for converting fesedflux to dust%prod
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 990
    dust_per_unit_feventflux :
       dependencies : base_bio_on
       longname : Scale factor for converting feventflux to dust%prod
       subcategory : 5. general parameters
-      units : 1
+      units : '1'
       datatype : real
       default_value : 9.9
    parm_scalelen_z :
