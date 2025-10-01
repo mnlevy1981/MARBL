@@ -1541,7 +1541,7 @@ contains
 
           !P-limitation effect (CaCO2/organicC ratio increases when P limitation term is low)
           ! max out picpoc at one to prevent crashing due to "ballast exceeds POC" error
-          picpoc = min(1., max(0.0_r8, -0.48_r8 * Plim(auto_ind,:) + picpoc(:) + 0.48_r8))
+          picpoc = min(1.0_r8, max(0.0_r8, -0.48_r8 * Plim(auto_ind,:) + picpoc(:) + 0.48_r8))
 
           !multiply cocco growth rate by picpoc to get CaCO3 formation
           CaCO3_form(auto_ind,:) = picpoc(:) * photoC(auto_ind,:)
@@ -1697,7 +1697,7 @@ contains
     !-----------------------------------------------------------------------
     !  local variables
     !-----------------------------------------------------------------------
-    integer  :: auto_ind
+    integer  :: auto_ind, k
     !-----------------------------------------------------------------------
 
     associate(                                              &
@@ -1721,21 +1721,23 @@ contains
 
       do auto_ind = 1, autotroph_cnt
 
-        where (VNtot(auto_ind,:) > c0)
-          NO3_V(auto_ind,:) = (VNO3(auto_ind,:) / VNtot(auto_ind,:)) * photoC(auto_ind,:) * Q
-          NH4_V(auto_ind,:) = (VNH4(auto_ind,:) / VNtot(auto_ind,:)) * photoC(auto_ind,:) * Q
-        else where
-          NO3_V(auto_ind,:) = c0
-          NH4_V(auto_ind,:) = c0
-        end where
+        do k=1,size(VNtot,2)
+          if (VNtot(auto_ind,k) > c0) then
+            NO3_V(auto_ind,k) = (VNO3(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * Q
+            NH4_V(auto_ind,k) = (VNH4(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * Q
+          else
+            NO3_V(auto_ind,k) = c0
+            NH4_V(auto_ind,k) = c0
+          end if
 
-        where (VPtot(auto_ind,:) > c0)
-          PO4_V(auto_ind,:) = (VPO4(auto_ind,:) / VPtot(auto_ind,:)) * photoC(auto_ind,:) * gQp(auto_ind,:)
-          DOP_V(auto_ind,:) = (VDOP(auto_ind,:) / VPtot(auto_ind,:)) * photoC(auto_ind,:) * gQp(auto_ind,:)
-        else where
-          PO4_V(auto_ind,:) = c0
-          DOP_V(auto_ind,:) = c0
-        end where
+          if (VPtot(auto_ind,k) > c0) then
+            PO4_V(auto_ind,k) = (VPO4(auto_ind,k) / VPtot(auto_ind,k)) * photoC(auto_ind,k) * gQp(auto_ind,k)
+            DOP_V(auto_ind,k) = (VDOP(auto_ind,k) / VPtot(auto_ind,k)) * photoC(auto_ind,k) * gQp(auto_ind,k)
+          else
+            PO4_V(auto_ind,k) = c0
+            DOP_V(auto_ind,k) = c0
+          end if
+        end do
 
         !-----------------------------------------------------------------------
         !  Get nutrient uptake by diatoms based on C fixation
