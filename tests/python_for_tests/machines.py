@@ -33,16 +33,21 @@ def load_module(mach, compiler, module_name):
         module('load', 'ncarenv/23.06')
         module('load', 'craype')
     elif compiler == 'nvhpc':
-        module('load', 'ncarenv/23.06')
+        module('load', 'ncarenv/24.12')
     else:
         module('load', 'ncarenv/23.09')
     module('load', module_name)
     module('load', 'ncarcompilers/1.0.0')
     if compiler == 'cray':
         module('load', 'cray-mpich/8.1.25')
+    elif compiler == 'nvhpc':
+        module('load', 'cray-mpich/8.1.29')
     else:
         module('load', 'cray-mpich/8.1.27')
-    module('load', 'netcdf/4.9.2')
+    if compiler == 'nvhpc':
+        module('load', 'netcdf/4.9.3')
+    else:
+        module('load', 'netcdf/4.9.2')
     if compiler in ['gnu', 'cray']:
         module('load', 'cray-libsci/23.02.1.1')
 
@@ -101,7 +106,7 @@ def machine_specific(mach, supported_compilers, module_names):
     module_names['intel'] = 'intel/2023.2.1'
     module_names['gnu'] = 'gcc/12.2.0'
     module_names['cray'] = 'cce/15.0.1'
-    module_names['nvhpc'] = 'nvhpc/23.1'
+    module_names['nvhpc'] = 'nvhpc/25.9'
     return
 
   if mach == 'cheyenne':
@@ -144,6 +149,8 @@ def machine_specific(mach, supported_compilers, module_names):
       supported_compilers.append('pgi')
     if _compiler_is_present('ifort'):
       supported_compilers.append('intel')
+    if _compiler_is_present('nvfortran'):
+      supported_compilers.append('nvhpc')
     if _compiler_is_present('nagfor'):
       supported_compilers.append('nag')
     if supported_compilers == []:
