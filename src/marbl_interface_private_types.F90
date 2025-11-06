@@ -163,6 +163,7 @@ module marbl_interface_private_types
      real(r8) :: rho                        ! QA mass ratio of POC to this particle class
      real(r8) :: to_floor                   ! flux hitting sea floor (base units/L^2/sec)
      real(r8) :: flux_at_ref_depth          ! flux at particulate_flux_ref_depth (base units/L^2/sec)
+     real(r8) :: d_bury_d_bury_coeff        ! Derivative of burial with respect to bury coeff (base units/L^2/sec)
      real(r8), allocatable  :: sflux_in (:) ! incoming flux of soft subclass (base units/L^2/sec)
      real(r8), allocatable  :: hflux_in (:) ! incoming flux of hard subclass (base units/L^2/sec)
      real(r8), allocatable  :: prod     (:) ! production term (base units/L^3/sec)
