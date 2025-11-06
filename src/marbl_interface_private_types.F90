@@ -548,6 +548,9 @@ module marbl_interface_private_types
     integer(int_kind) :: bsiToSed
     integer(int_kind) :: dustToSed
     integer(int_kind) :: pfeToSed
+    integer(int_kind) :: d_POC_bury_d_bury_coeff
+    integer(int_kind) :: d_POP_bury_d_bury_coeff
+    integer(int_kind) :: d_bSi_bury_d_bury_coeff
 
     ! Autotroph 2D diags
     integer(int_kind), allocatable :: N_lim_surf(:)
