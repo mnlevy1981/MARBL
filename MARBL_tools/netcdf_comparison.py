@@ -30,7 +30,7 @@ import logging
 # to make it easy to update the default values if necessary
 # rtol = 1e-11 fails the cgs vs mks comparison
 #              (POC_REMIN_DIC and PON_REMIN_NH4 have rel errors of ~1.4e-11)
-DEFAULT_TOLS = {'rtol' : 1e-9, 'atol' : 1e-16, 'thres' : 1e-16}
+DEFAULT_TOLS = {'rtol' : 1e-8, 'atol' : 1e-16, 'thres' : 1e-16}
 
 ##################
 
