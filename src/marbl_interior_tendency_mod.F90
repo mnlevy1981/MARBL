@@ -2675,9 +2675,12 @@ contains
       ! scavenging of FeLig2 is not implemented
       !-----------------------------------------------------------------------
 
-      dust%prod(k) = c0
-!      dust%prod(k) = (((fesedflux(k) * Fe_to_dust) * dust_per_unit_fesedflux) &
-!                   + ((feventflux(k) * Fe_to_dust) * dust_per_unit_feventflux)) * dzr_loc
+      ! TODO: we do not want this to be zero permanently, but it is causing issues
+      !       in MOM6 due to vanishing layers at the sea floor the non-vanishing
+      !       layer above the vanishing layers potentially being thinner than the
+      !       layer above it.
+      dust%prod(k) = c0 * (((fesedflux(k) * Fe_to_dust) * dust_per_unit_fesedflux) &
+                   + ((feventflux(k) * Fe_to_dust) * dust_per_unit_feventflux)) * dzr_loc
 
       ! sinking_mass: ng/cm^2/s in cgs, mg/m^2/s in mks
       sinking_mass = (POC%sflux_in(k)     + POC%hflux_in(k)    ) * 24.02_r8 &
