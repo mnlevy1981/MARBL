@@ -676,14 +676,14 @@ general_parms :
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 990
+      default_value : 500
    dust_per_unit_feventflux :
       dependencies : base_bio_on
       longname : Scale factor for converting feventflux to dust%prod
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 9.9
+      default_value : 25
    parm_scalelen_z :
       dependencies : base_bio_on
       longname : Depths of prescribed scale length values

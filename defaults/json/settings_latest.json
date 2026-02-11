@@ -1167,7 +1167,7 @@
       },
       "dust_per_unit_fesedflux": {
          "datatype": "real",
-         "default_value": 990,
+         "default_value": 500,
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting fesedflux to dust%prod",
          "subcategory": "5. general parameters",
@@ -1175,7 +1175,7 @@
       },
       "dust_per_unit_feventflux": {
          "datatype": "real",
-         "default_value": 9.9,
+         "default_value": 25,
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting feventflux to dust%prod",
          "subcategory": "5. general parameters",

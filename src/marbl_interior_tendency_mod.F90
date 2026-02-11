@@ -1358,7 +1358,7 @@ contains
             where (WORK1 < autotroph_settings(auto_ind)%Nopt)
               gQp(auto_ind,:) = &
                 max(gQp(auto_ind,:) * WORK1 / autotroph_settings(auto_ind)%NOpt, &
-                  autotroph_settings(auto_ind)%gQp_min * 0.55_r8)
+                  autotroph_settings(auto_ind)%gQp_min * 0.5_r8)
             endwhere
           endif
 
@@ -2675,8 +2675,8 @@ contains
       ! scavenging of FeLig2 is not implemented
       !-----------------------------------------------------------------------
 
-      dust%prod(k) = ((fesedflux(k) * Fe_to_dust * dust_per_unit_fesedflux) &
-                   + (feventflux(k) * Fe_to_dust * dust_per_unit_feventflux)) * dzr_loc
+      dust%prod(k) = (((fesedflux(k) * Fe_to_dust) * dust_per_unit_fesedflux) &
+                   + ((feventflux(k) * Fe_to_dust) * dust_per_unit_feventflux)) * dzr_loc
 
       ! sinking_mass: ng/cm^2/s in cgs, mg/m^2/s in mks
       sinking_mass = (POC%sflux_in(k)     + POC%hflux_in(k)    ) * 24.02_r8 &
@@ -2686,7 +2686,7 @@ contains
 
 
       if ((DOC_loc(k) .gt. c0) .and. (DOCr_loc(k) .gt. c0)) then
-        sinking_mass = sinking_mass * (((DOC_loc(k) * 2.0_r8) + DOCr_loc(k)) / DOCr_loc(k))
+        sinking_mass = sinking_mass * (((DOC_loc(k) * 1.6_r8) + DOCr_loc(k)) / DOCr_loc(k))
       endif
 
       Fe_scavenge_rate    = parm_Fe_scavenge_rate0_yps * sinking_mass
@@ -3035,7 +3035,7 @@ contains
      if (p_remin_scalef /= c1) scalelength = scalelength / p_remin_scalef
 
      DECAY_Hard     = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 4.0e6_r8)
-     DECAY_HardDust = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 9.54641e7_r8)
+     DECAY_HardDust = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 3.22291e8_r8)
 
      poc_error = .false.
      dz_loc = delta_z(k)
@@ -3227,7 +3227,7 @@ contains
         !   it accounts for the increasing sinking speed of particles with depth
         !      less desorption with depth (as mean sinking speed increases)
         !-----------------------------------------------------------------------
-        dzr_mod = min(c1, (dz_loc * unit_system%len2m)**(-0.343_r8))
+        dzr_mod = min(c1, (dz_loc * unit_system%len2m)**(-0.36_r8))
         P_iron%remin(k) = P_iron%remin(k) +                &
              P_iron%sflux_in(k) * parm_Fe_desorption_rate0 * dzr_mod
 
@@ -3257,7 +3257,7 @@ contains
         !  add ligand source from vents, proportional to Fe input
         !-----------------------------------------------------------------------
 
-        Lig_prod(k) = feventflux(k) * dzr_loc * 0.22_r8
+        Lig_prod(k) = feventflux(k) * dzr_loc * 0.15_r8
 
         !------------------------------------------------------------------------
         !  compute POP and PON remin and flux out, following code for iron
@@ -3642,7 +3642,7 @@ contains
       do subcol_ind = 1, PAR_nsubcols
         if ((PAR_col_frac(subcol_ind) > c0) .and. (PAR%interface(0,subcol_ind) > 1.0_r8)) then
           rate_per_sec_subcol = (log(PAR%interface(0,subcol_ind))*0.4373_r8) &
-                              * (10._r8*unit_system%m2len/dz1)*(0.009_r8*yps)
+                              * (10._r8*unit_system%m2len/dz1)*(0.018_r8*dps)
           rate_per_sec = rate_per_sec + PAR_col_frac(subcol_ind) * rate_per_sec_subcol
         endif
       end do
@@ -3658,8 +3658,16 @@ contains
       !  total ligand loss
       !----------------------------------------------------------------------
 
-      Lig_loss(:) = Lig_scavenge(:) + 0.25_r8*sum(photoFe(:,:),dim=1) + Lig_photochem(:) + Lig_deg(:)
+      Lig_loss(:) = Lig_scavenge(:) + 0.4_r8*sum(photoFe(:,:),dim=1) + Lig_photochem(:) + Lig_deg(:)
 
+      !----------------------------------------------------------------------
+      !  decrease phytoplankton uptake and bacterial degradation at low ligand conentrations
+      !----------------------------------------------------------------------
+      where (Lig_loc(:) < 1.25e-3_r8)
+         Lig_loss(:) = Lig_scavenge(:) + Lig_photochem(:) &
+                       + (0.4_r8* sum(photoFe(:,:),dim=1)  + Lig_deg(:)) &
+                       * (Lig_loc(:) / 1.25e-3_r8)
+      endwhere
     end associate
 
   end subroutine compute_Lig_terms
