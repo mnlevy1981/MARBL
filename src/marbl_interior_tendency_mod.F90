@@ -2676,9 +2676,11 @@ contains
       !-----------------------------------------------------------------------
 
       ! TODO: we do not want this to be zero permanently, but it is causing issues
-      !       in MOM6 due to vanishing layers at the sea floor the non-vanishing
-      !       layer above the vanishing layers potentially being thinner than the
-      !       layer above it.
+      !       in MOM6
+      ! NOTE: we are intentionally multiplying by 0 to maintain usage of fesedflux and
+      !       feventflux (gfortran elevates warnings to errors and we want to avoid
+      !       unused variable warnings; this is preferable to removing the variables
+      !       from the API and putting them back in when we are ready for non-zero dust%prod
       dust%prod(k) = c0 * (((fesedflux(k) * Fe_to_dust) * dust_per_unit_fesedflux) &
                    + ((feventflux(k) * Fe_to_dust) * dust_per_unit_feventflux)) * dzr_loc
 
