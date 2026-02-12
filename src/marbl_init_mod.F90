@@ -162,6 +162,7 @@ contains
                                 marbl_status_log)
 
     use marbl_settings_mod, only : lvariable_PtoC
+    use marbl_settings_mod, only : lvariable_NtoC
     use marbl_settings_mod, only : autotroph_settings
     use marbl_settings_mod, only : zooplankton_settings
     use marbl_settings_mod, only : tracer_restore_vars
@@ -189,7 +190,7 @@ contains
 
     ! Construct tracer indices
     allocate(tracer_indices)
-    call tracer_indices%construct(base_bio_on, abio_dic_on, ciso_on, lvariable_PtoC, &
+    call tracer_indices%construct(base_bio_on, abio_dic_on, ciso_on, lvariable_PtoC, lvariable_NtoC, &
                                   autotroph_settings, zooplankton_settings, marbl_status_log)
     if (marbl_status_log%labort_marbl) then
       call marbl_status_log%log_error_trace("tracer_indices%construct", subname)
@@ -683,6 +684,22 @@ contains
         if (id .eq. ind%fesedflux_id) then
           found = .true.
           interior_tendency_forcings(id)%metadata%varname     = 'Iron Sediment Flux'
+          interior_tendency_forcings(id)%metadata%field_units = trim(unit_system%conc_flux_units)
+          call interior_tendency_forcings(id)%set_rank(num_elements, 1, marbl_status_log, dim1 = num_levels)
+        end if
+
+        ! Iron Red Sediment Flux
+        if (id .eq. ind%feRedsedflux_id) then
+          found = .true.
+          interior_tendency_forcings(id)%metadata%varname     = 'Iron Red Sediment Flux'
+          interior_tendency_forcings(id)%metadata%field_units = trim(unit_system%conc_flux_units)
+          call interior_tendency_forcings(id)%set_rank(num_elements, 1, marbl_status_log, dim1 = num_levels)
+        end if
+
+        ! Iron Vent Flux
+        if (id .eq. ind%feventflux_id) then
+          found = .true.
+          interior_tendency_forcings(id)%metadata%varname     = 'Iron Vent Flux'
           interior_tendency_forcings(id)%metadata%field_units = trim(unit_system%conc_flux_units)
           call interior_tendency_forcings(id)%set_rank(num_elements, 1, marbl_status_log, dim1 = num_levels)
         end if

@@ -121,6 +121,18 @@
       "units": 1,
       "vertical_grid": "none"
    },
+   "((autotroph_sname))_Qn": {
+      "dependencies": {
+         "lvariable_NtoC": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "medium",
+      "longname": "((autotroph_lname)) N:C ratio",
+      "operator": "average",
+      "truncate": true,
+      "units": 1,
+      "vertical_grid": "layer_avg"
+   },
    "((autotroph_sname))_Qp": {
       "dependencies": {
          "lvariable_PtoC": ".true."
@@ -1575,6 +1587,17 @@
       "units": "mmol/m^3 cm/s",
       "vertical_grid": "none"
    },
+   "DON_loss_N_bal": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "never",
+      "longname": "DON loss, due to N budget balancing",
+      "operator": "average",
+      "units": "mmol/m^3/s",
+      "vertical_grid": "layer_avg"
+   },
    "DON_prod": {
       "dependencies": {
          "base_bio_on": ".true."
@@ -1760,6 +1783,17 @@
       "units": "cm/s",
       "vertical_grid": "none"
    },
+   "FEREDSEDFLUX": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "never",
+      "longname": "Iron Red Sediment Flux",
+      "operator": "average",
+      "units": "nmol/cm^2/s",
+      "vertical_grid": "layer_avg"
+   },
    "FESEDFLUX": {
       "dependencies": {
          "base_bio_on": ".true."
@@ -1767,6 +1801,17 @@
       "diag_mode": "full",
       "frequency": "never",
       "longname": "Iron Sediment Flux",
+      "operator": "average",
+      "units": "nmol/cm^2/s",
+      "vertical_grid": "layer_avg"
+   },
+   "FEVENTFLUX": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "never",
+      "longname": "Iron Vent Flux",
       "operator": "average",
       "units": "nmol/cm^2/s",
       "vertical_grid": "layer_avg"
@@ -2316,6 +2361,39 @@
       "longname": "POC sFlux into Cell",
       "operator": "average",
       "units": "mmol/m^3 cm/s",
+      "vertical_grid": "layer_avg"
+   },
+   "PON_FLUX_((particulate_flux_ref_depth_str))": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "medium",
+      "longname": "PON Flux at ((particulate_flux_ref_depth_str))",
+      "operator": "average",
+      "units": "mmol/m^3 cm/s",
+      "vertical_grid": "none"
+   },
+   "PON_FLUX_IN": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "medium",
+      "longname": "PON Flux into Cell",
+      "operator": "average",
+      "units": "mmol/m^3 cm/s",
+      "vertical_grid": "layer_avg"
+   },
+   "PON_PROD": {
+      "dependencies": {
+         "base_bio_on": ".true."
+      },
+      "diag_mode": "full",
+      "frequency": "medium",
+      "longname": "PON Production",
+      "operator": "average",
+      "units": "mmol/m^3/s",
       "vertical_grid": "layer_avg"
    },
    "PON_REMIN_DONr": {

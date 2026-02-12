@@ -153,8 +153,7 @@ contains
        ! (i.e., if init_bury_coeff_opt == 'settings_file')
        ! However, for simpler code we always set them
 
-!      rmean_ALK_nonN_input_integral = 1.62e-4_r8 ! GNEWS2000 value on gx1v6 grid [neq/cm^2/s]
-       rmean_CaCO3_bury_integral     = 1.62e-4_r8 ! matches rmean_ALK_nonN_input_integral
+       rmean_CaCO3_bury_integral     = 1.62e-4_r8 ! matches nonN GNEWS2000 ALK value
        rmean_C_input_integral        = 2.69e-4_r8 ! GNEWS2000 value on gx1v6 grid [nmol C/cm^2/s]
        rmean_P_input_integral        = 9.66e-7_r8 ! GNEWS2000 value on gx1v6 grid [nmol P/cm^2/s]
        rmean_Si_input_integral       = 4.10e-5_r8 ! GNEWS2000 value on gx1v6 grid [nmol Si/cm^2/s]

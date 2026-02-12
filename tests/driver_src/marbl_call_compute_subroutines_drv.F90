@@ -35,7 +35,7 @@ Contains
     type(marbl_log_type),                      intent(inout) :: driver_status_log
 
     character(len=*), parameter :: subname = 'marbl_call_compute_subroutines_drv:test'
-    character(len=*), parameter :: infile = '../../input_files/initial_conditions/call_compute_subroutines.20190718.nc'
+    character(len=*), parameter :: infile = '../../input_files/initial_conditions/call_compute_subroutines.20250425.nc'
     character(len=char_len) :: log_message
     real(r8),                  allocatable, dimension(:,:)   :: surface_fluxes              ! num_cols x num_tracers
     real(r8),                  allocatable, dimension(:,:)   :: surface_flux_output         ! num_cols x num_vars

@@ -151,6 +151,7 @@ module marbl_interface
      procedure, public  :: extract_timing
      procedure, private :: glo_vars_init
      procedure, public  :: get_tracer_index
+     procedure, public  :: autotroph_tracer_consistency_enforce
      procedure, public  :: compute_totChl
      procedure, public  :: interior_tendency_compute
      procedure, public  :: surface_flux_compute
@@ -1223,5 +1224,75 @@ contains
   end function get_tracer_index
 
   !*****************************************************************************
+
+  subroutine autotroph_tracer_consistency_enforce(this)
+
+    use marbl_interior_tendency_mod, only : marbl_interior_tendency_setup_local_tracers
+
+    class(marbl_interface_class), intent(inout) :: this
+
+    !-----------------------------------------------------------------------
+    !  local variables
+    !-----------------------------------------------------------------------
+    real(r8), dimension(this%tracer_indices%total_cnt, this%domain%km) :: tracer_local
+    integer :: auto_ind, n
+
+    call marbl_interior_tendency_setup_local_tracers(this%domain%kmt, this%tracer_indices, &
+        this%tracers, this%autotroph_local, tracer_local, this%zooplankton_local)
+
+    ! Copy values from autotroph_local back to tracer array
+    do auto_ind = 1, size(this%tracer_indices%auto_inds)
+      n = this%tracer_indices%auto_inds(auto_ind)%Chl_ind
+      this%tracers(n,:) = this%autotroph_local%Chl(auto_ind,:)
+
+      n = this%tracer_indices%auto_inds(auto_ind)%C_ind
+      this%tracers(n,:) = this%autotroph_local%C(auto_ind,:)
+
+      n = this%tracer_indices%auto_inds(auto_ind)%P_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%P(auto_ind,:)
+      end if
+
+      n = this%tracer_indices%auto_inds(auto_ind)%N_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%N(auto_ind,:)
+      end if
+
+      n = this%tracer_indices%auto_inds(auto_ind)%Fe_ind
+      this%tracers(n,:) = this%autotroph_local%Fe(auto_ind,:)
+
+      n = this%tracer_indices%auto_inds(auto_ind)%Si_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%Si(auto_ind,:)
+      end if
+
+      n = this%tracer_indices%auto_inds(auto_ind)%CaCO3_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%CaCO3(auto_ind,:)
+      end if
+
+      ! Carbon isotopes
+      n = this%tracer_indices%auto_inds(auto_ind)%C13_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%C13(auto_ind,:)
+      end if
+      n = this%tracer_indices%auto_inds(auto_ind)%C14_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%C14(auto_ind,:)
+      end if
+
+      n = this%tracer_indices%auto_inds(auto_ind)%Ca13CO3_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%Ca13CO3(auto_ind,:)
+      end if
+
+      n = this%tracer_indices%auto_inds(auto_ind)%Ca14CO3_ind
+      if (n > 0) then
+        this%tracers(n,:) = this%autotroph_local%Ca14CO3(auto_ind,:)
+      end if
+    end do
+
+
+  end subroutine autotroph_tracer_consistency_enforce
 
 end module marbl_interface

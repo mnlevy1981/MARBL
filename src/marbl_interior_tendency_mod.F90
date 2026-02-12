@@ -50,8 +50,8 @@ module marbl_interior_tendency_mod
   use marbl_settings_mod, only : ladjust_bury_coeff
   use marbl_settings_mod, only : autotroph_settings
   use marbl_settings_mod, only : zooplankton_settings
-  use marbl_settings_mod, only : dust_to_Fe
-  use marbl_settings_mod, only : denitrif_C_N
+  use marbl_settings_mod, only : dust_per_unit_fesedflux
+  use marbl_settings_mod, only : dust_per_unit_feventflux
   use marbl_settings_mod, only : parm_Red_Fe_C
   use marbl_settings_mod, only : Q
   use marbl_settings_mod, only : parm_scalelen_z
@@ -91,6 +91,7 @@ module marbl_interior_tendency_mod
   public  :: marbl_interior_tendency_compute
   public  :: marbl_interior_tendency_adjust_bury_coeff
   public  :: marbl_interior_tendency_compute_totChl
+  public  :: marbl_interior_tendency_setup_local_tracers
 
 contains
 
@@ -201,13 +202,12 @@ contains
     real (r8) :: Fe_scavenge(domain%km)      ! loss of dissolved iron, scavenging (mmol Fe/m^3/sec)
     real (r8) :: Lig_scavenge(domain%km)     ! loss of Fe-binding Ligand from scavenging (mmol Fe/m^3/sec)
     real (r8) :: QA_dust_def(domain%km)
-    real (r8) :: PON_remin(domain%km)        ! remin of PON
-    real (r8) :: PON_sed_loss(domain%km)     ! loss of PON to sediments
     real (r8) :: Fefree(domain%km)           ! unbound Fe
     real (r8) :: Lig_prod(domain%km)         ! production of Fe-binding Ligand
     real (r8) :: Lig_photochem(domain%km)    ! loss of Fe-binding Ligand from UV radiation
     real (r8) :: Lig_deg(domain%km)          ! loss of Fe-binding Ligand from bacterial degradation
     real (r8) :: Lig_loss(domain%km)         ! loss of Fe-binding Ligand
+    real (r8) :: denitrif_C_N(domain%km)     ! local value of denitrif c/n
 
     ! NOTE(bja, 2015-07) vectorization: arrays that are (n, k, c, i)
     ! probably can not be vectorized reasonably over c without memory
@@ -237,8 +237,8 @@ contains
     !  create local copies of model tracers
     !-----------------------------------------------------------------------
 
-    call setup_local_tracers(domain%kmt, marbl_tracer_indices, tracers(:,:), autotroph_local, &
-         tracer_local(:,:), zooplankton_local)
+    call marbl_interior_tendency_setup_local_tracers(domain%kmt, marbl_tracer_indices, &
+         tracers(:,:), autotroph_local, tracer_local(:,:), zooplankton_local)
 
     !-----------------------------------------------------------------------
     !  Set all interior diagnostics to zero
@@ -288,23 +288,26 @@ contains
          num_PAR_subcols     => domain%num_PAR_subcols,             &
          delta_z1            => domain%delta_z(1),                  &
 
-         POC                 => marbl_particulate_share%POC,        &
-         POP                 => marbl_particulate_share%POP,        &
-         P_CaCO3             => marbl_particulate_share%P_CaCO3,    &
-         P_CaCO3_ALT_CO2     => marbl_particulate_share%P_CaCO3_ALT_CO2,&
-         P_SiO2              => marbl_particulate_share%P_SiO2,     &
-         dust                => marbl_particulate_share%dust,       &
-         P_iron              => marbl_particulate_share%P_iron,     &
+         POC                 => marbl_particulate_share%POC,             &
+         POP                 => marbl_particulate_share%POP,             &
+         PON                 => marbl_particulate_share%PON,             &
+         P_CaCO3             => marbl_particulate_share%P_CaCO3,         &
+         P_CaCO3_ALT_CO2     => marbl_particulate_share%P_CaCO3_ALT_CO2, &
+         P_SiO2              => marbl_particulate_share%P_SiO2,          &
+         dust                => marbl_particulate_share%dust,            &
+         P_iron              => marbl_particulate_share%P_iron,          &
 
-         ph_prev_col         => saved_state%state(saved_state_ind%ph_col)%field_3d(:,1), &
+         ph_prev_col         => saved_state%state(saved_state_ind%ph_col)%field_3d(:,1),         &
          ph_prev_alt_co2_col => saved_state%state(saved_state_ind%ph_alt_co2_col)%field_3d(:,1), &
 
          ! Hard-coding in that there is only 1 column passed in at a time!
-         dust_flux_in        => interior_tendency_forcings(interior_tendency_forcing_indices%dustflux_id)%field_0d(1),   &
-         potemp              => interior_tendency_forcings(interior_tendency_forcing_indices%potemp_id)%field_1d(1,:),   &
-         pressure            => interior_tendency_forcings(interior_tendency_forcing_indices%pressure_id)%field_1d(1,:), &
-         salinity            => interior_tendency_forcings(interior_tendency_forcing_indices%salinity_id)%field_1d(1,:), &
-         fesedflux           => interior_tendency_forcings(interior_tendency_forcing_indices%fesedflux_id)%field_1d(1,:),&
+         dust_flux_in    => interior_tendency_forcings(interior_tendency_forcing_indices%dustflux_id)%field_0d(1),       &
+         potemp          => interior_tendency_forcings(interior_tendency_forcing_indices%potemp_id)%field_1d(1,:),       &
+         pressure        => interior_tendency_forcings(interior_tendency_forcing_indices%pressure_id)%field_1d(1,:),     &
+         salinity        => interior_tendency_forcings(interior_tendency_forcing_indices%salinity_id)%field_1d(1,:),     &
+         fesedflux       => interior_tendency_forcings(interior_tendency_forcing_indices%fesedflux_id)%field_1d(1,:),    &
+         feRedsedflux    => interior_tendency_forcings(interior_tendency_forcing_indices%feRedsedflux_id)%field_1d(1,:), &
+         feventflux      => interior_tendency_forcings(interior_tendency_forcing_indices%feventflux_id)%field_1d(1,:),   &
 
          po4_ind           => marbl_tracer_indices%po4_ind,         &
          no3_ind           => marbl_tracer_indices%no3_ind,         &
@@ -361,7 +364,7 @@ contains
                interior_tendency_forcing_indices,           &
                interior_restore)
 
-    call set_surface_particulate_terms(surface_flux_forcing_indices, unit_system, POC, POP, &
+    call set_surface_particulate_terms(surface_flux_forcing_indices, unit_system, POC, POP, PON, &
          P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, QA_dust_def(:), dust_flux_in)
 
     call marbl_timers%start(marbl_timer_indices%carbonate_chem_id,            &
@@ -418,9 +421,10 @@ contains
 
     do k = 1, km
 
-       call compute_scavenging(k, km, marbl_tracer_indices, tracer_local(:,:), &
-            POC, P_CaCO3, P_SiO2, dust, Fefree(:), Fe_scavenge_rate(:), &
-            Fe_scavenge(:), Lig_scavenge(:), marbl_status_log)
+       call compute_scavenging(domain, k, km, marbl_tracer_indices, tracer_local(:,:), &
+            POC, P_CaCO3, P_SiO2, fesedflux(:), feventflux(:), dust, &
+            Fefree(k), Fe_scavenge_rate(k), Fe_scavenge(k), Lig_scavenge(k), &
+            marbl_status_log)
 
        if (marbl_status_log%labort_marbl) then
           call marbl_status_log%log_error_trace('compute_scavenging()', subname)
@@ -429,17 +433,18 @@ contains
 
        call compute_large_detritus_prod(k, domain, marbl_tracer_indices, zooplankton_derived_terms, &
             autotroph_derived_terms, Fe_scavenge(k),                    &
-            POC, POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron,   &
-            dissolved_organic_matter%DOP_loss_P_bal(k), marbl_status_log)
+            POC, POP, PON, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, P_iron,    &
+            dissolved_organic_matter%DOP_loss_P_bal(k),                 &
+            dissolved_organic_matter%DON_loss_N_bal(k), marbl_status_log)
 
        ! FIXME #28: need to pull particulate share out
        !            of compute_particulate_terms!
-       call compute_particulate_terms(k, domain, bot_flux_to_tend, p_remin_scalef(k),   &
-            tracer_local(:, :), carbonate, fesedflux(k), marbl_tracer_indices,          &
-            unit_system, PON_remin(:), POC, POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2,      &
-            dust, P_iron, QA_dust_def(k), sed_denitrif(:), other_remin(:),              &
-            marbl_particulate_share, glo_avg_fields_interior_tendency, PON_sed_loss(k), &
-            marbl_status_log)
+       call compute_particulate_terms(k, domain, bot_flux_to_tend, p_remin_scalef(k),    &
+            tracer_local(:, :), carbonate, fesedflux(:), feRedsedflux(:), feventflux(:), &
+            marbl_tracer_indices, unit_system, POC, POP, PON, P_CaCO3, P_CaCO3_ALT_CO2,  &
+            P_SiO2, Lig_prod, dust, P_iron, QA_dust_def(k), denitrif_C_N(:),             &
+            sed_denitrif(:), other_remin(:), marbl_particulate_share,                    &
+            glo_avg_fields_interior_tendency, marbl_status_log)
 
        if (marbl_status_log%labort_marbl) then
           call marbl_status_log%log_error_trace('compute_particulate_terms()', subname)
@@ -447,7 +452,7 @@ contains
        end if
 
        if  (k < km) then
-          call update_particulate_terms_from_prior_level(k+1, POC, POP, P_CaCO3, &
+          call update_particulate_terms_from_prior_level(k+1, POC, POP, PON, P_CaCO3, &
                P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, QA_dust_def(:))
        endif
 
@@ -462,16 +467,17 @@ contains
     call compute_denitrif(km, marbl_tracer_indices, tracer_local(:, :), &
          dissolved_organic_matter%DOC_remin(:), &
          dissolved_organic_matter%DOCr_remin(:), &
-         POC%remin(:), other_remin(:), sed_denitrif(:), denitrif(:))
+         POC%remin(:), other_remin(:), denitrif_C_N(:), &
+         sed_denitrif(:), denitrif(:))
 
     call compute_local_tendencies(km, marbl_tracer_indices, autotroph_derived_terms, &
          zooplankton_derived_terms, &
          dissolved_organic_matter, &
-         nitrif(:), denitrif(:), sed_denitrif(:), &
+         nitrif(:), denitrif(:), denitrif_C_N(:), sed_denitrif(:), &
          Fe_scavenge(:), Lig_prod(:), Lig_loss(:), &
-         P_iron%remin(:), POC%remin(:), POP%remin(:), &
+         P_iron%remin(:), POC%remin(:), POP%remin(:), PON%remin(:), &
          P_SiO2%remin(:), P_CaCO3%remin(:), P_CaCO3_ALT_CO2%remin(:), &
-         other_remin(:), PON_remin(:), &
+         other_remin(:), &
          tracer_local(:,:), &
          o2_consumption_scalef(:), &
          o2_production(:), o2_consumption(:), &
@@ -492,7 +498,6 @@ contains
          dissolved_organic_matter,                          &
          marbl_particulate_share,                           &
          PAR,                                               &
-         PON_remin, PON_sed_loss,                           &
          sed_denitrif, other_remin, nitrif, denitrif,       &
          tracers(o2_ind, :), o2_production, o2_consumption, &
          fe_scavenge, fe_scavenge_rate,                     &
@@ -534,6 +539,7 @@ contains
          autotroph_local         = autotroph_local,             &
          temperature             = temperature,                 &
          marbl_tracer_indices    = marbl_tracer_indices,        &
+         denitrif_C_N            = denitrif_C_N,                &
          unit_system             = unit_system,                 &
          interior_tendencies     = interior_tendencies,         &
          marbl_interior_diags    = interior_tendency_diags,     &
@@ -785,8 +791,8 @@ contains
 
   !***********************************************************************
 
-  subroutine setup_local_tracers(column_kmt, marbl_tracer_indices, tracers, &
-       autotroph_local, tracer_local, zooplankton_local)
+  subroutine marbl_interior_tendency_setup_local_tracers(column_kmt, marbl_tracer_indices, &
+       tracers, autotroph_local, tracer_local, zooplankton_local)
 
     !-----------------------------------------------------------------------
     !  create local copies of model tracers
@@ -842,6 +848,13 @@ contains
         autotroph_local%P(auto_ind,:) = autotroph_settings(auto_ind)%Qp_fixed * autotroph_local%C(auto_ind,:)
       end if
 
+      n = marbl_tracer_indices%auto_inds(auto_ind)%N_ind
+      if (n > 0) then
+        autotroph_local%N(auto_ind,:) = tracer_local(n,:)
+      else
+        autotroph_local%N(auto_ind,:) = Q * autotroph_local%C(auto_ind,:)
+      end if
+
       n = marbl_tracer_indices%auto_inds(auto_ind)%Fe_ind
       autotroph_local%Fe(auto_ind,:) = tracer_local(n,:)
 
@@ -879,12 +892,12 @@ contains
     ! autotroph consistency check
     call autotroph_zero_consistency_enforce(column_kmt, marbl_tracer_indices, autotroph_local)
 
-  end subroutine setup_local_tracers
+  end subroutine marbl_interior_tendency_setup_local_tracers
 
   !***********************************************************************
 
   subroutine set_surface_particulate_terms(surface_flux_forcing_indices, unit_system, POC, &
-       POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, QA_dust_def, NET_DUST_IN)
+       POP, PON, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, QA_dust_def, NET_DUST_IN)
 
     !  Set incoming fluxes (put into outgoing flux for first level usage).
     !  Set dissolution length, production fraction and mass terms.
@@ -903,11 +916,12 @@ contains
     use marbl_settings_mod, only : parm_hPOC_SiO2_ratio
     use marbl_settings_mod, only : parm_hPOC_dust_ratio
 
-    real (r8)                          , intent(in)    :: net_dust_in     ! dust flux
+    real (r8)                          , intent(in)    :: NET_DUST_IN     ! dust flux
     type(marbl_surface_flux_forcing_indexing_type), intent(in)   :: surface_flux_forcing_indices
     type(unit_system_type)             , intent(in)    :: unit_system
     type(column_sinking_particle_type) , intent(inout) :: POC             ! base units = nmol C
     type(column_sinking_particle_type) , intent(inout) :: POP             ! base units = nmol P
+    type(column_sinking_particle_type) , intent(inout) :: PON             ! base units = nmol N
     type(column_sinking_particle_type) , intent(inout) :: P_CaCO3         ! base units = nmol CaCO3
     type(column_sinking_particle_type) , intent(inout) :: P_CaCO3_ALT_CO2 ! base units = nmol CaCO3
     type(column_sinking_particle_type) , intent(inout) :: P_SiO2          ! base units = nmol SiO2
@@ -937,6 +951,11 @@ contains
     POP%mass      = 30.974_r8       ! molecular weight of P (g/mol)
     POP%rho       = c0              ! not used
 
+    PON%diss      = parm_POC_diss   ! not used
+    PON%gamma     = c0              ! not used
+    PON%mass      = 14.0067_r8      ! molecular weight of n (g/mol)
+    PON%rho       = c0              ! not used
+
     P_CaCO3%diss  = parm_CaCO3_diss ! diss. length (L)
     P_CaCO3%gamma = parm_CacO3_gamma! prod frac -> hard subclass
     P_CaCO3%mass  = 100.09_r8       ! molecular weight of CaCO3 (g/mol)
@@ -953,7 +972,7 @@ contains
     P_SiO2%rho    = parm_hPOC_SiO2_ratio * P_SiO2%mass / POC%mass ! QA mass ratio for SiO2
 
     dust%diss     = 400.0_r8 * unit_system%m2len  ! diss. length (L)
-    dust%gamma    = 0.98_r8         ! prod frac -> hard subclass
+    dust%gamma    = 1.0_r8          ! prod frac -> hard subclass
     dust%mass     = 1.0e9_r8        ! base units are already grams
     dust%rho      = parm_hPOC_dust_ratio * dust%mass / POC%mass ! QA mass ratio for dust (nmol/g)
     dust%rho      = dust%rho * unit_system%nmol2mol_prefix * unit_system%mass2g ! convert from nmol/g -> mmol/kg in mks)
@@ -998,6 +1017,9 @@ contains
 
     POP%sflux_in(ksurf) = c0
     POP%hflux_in(ksurf) = c0
+
+    PON%sflux_in(ksurf) = c0
+    PON%hflux_in(ksurf) = c0
 
     !-----------------------------------------------------------------------
     !  Compute initial QA(dust) POC flux deficit.
@@ -1170,6 +1192,7 @@ contains
         zero_mask(k) = (autotroph_local%Chl(auto_ind,k) == c0 &
                         .or. autotroph_local%C(auto_ind,k) == c0 &
                         .or. autotroph_local%P(auto_ind,k) == c0 &
+                        .or. autotroph_local%N(auto_ind,k) == c0 &
                         .or. autotroph_local%Fe(auto_ind,k)  == c0)
 
         if (marbl_tracer_indices%auto_inds(auto_ind)%Si_ind > 0) then
@@ -1180,6 +1203,7 @@ contains
         autotroph_local%Chl(auto_ind,1:column_kmt) = c0
         autotroph_local%C(auto_ind,1:column_kmt) = c0
         autotroph_local%P(auto_ind,1:column_kmt) = c0
+        autotroph_local%N(auto_ind,1:column_kmt) = c0
         autotroph_local%Fe(auto_ind,1:column_kmt) = c0
       end where
       if (marbl_tracer_indices%auto_inds(auto_ind)%Si_ind > 0) then
@@ -1208,12 +1232,10 @@ contains
 
     use marbl_constants_mod, only : epsC
     use marbl_settings_mod,  only : lvariable_PtoC
+    use marbl_settings_mod,  only : lvariable_NtoC
     use marbl_settings_mod,  only : gQsi_0
     use marbl_settings_mod,  only : gQsi_max
     use marbl_settings_mod,  only : gQsi_min
-    use marbl_settings_mod,  only : gQ_Fe_kFe_thres
-    use marbl_settings_mod,  only : gQ_Si_kSi_thres
-    use marbl_settings_mod,  only : PquotaSlope, PquotaIntercept, PquotaMinNP
     use marbl_settings_mod,  only : QCaCO3_max
 
     integer,                            intent(in)    :: km
@@ -1226,15 +1248,20 @@ contains
     !  local variables
     !-----------------------------------------------------------------------
     integer(int_kind) :: auto_ind
+    real(r8) :: WORK1(km)
     !-----------------------------------------------------------------------
 
     associate(                                                        &
          PO4_loc    => tracer_local(marbl_tracer_indices%po4_ind,:),  &
+         DOP_loc    => tracer_local(marbl_tracer_indices%dop_ind,:),  &
+         NO3_loc    => tracer_local(marbl_tracer_indices%no3_ind,:),  &
+         NH4_loc    => tracer_local(marbl_tracer_indices%nh4_ind,:),  &
          Fe_loc     => tracer_local(marbl_tracer_indices%fe_ind,:),   &
          SiO3_loc   => tracer_local(marbl_tracer_indices%sio3_ind,:), &
 
          auto_C     => autotroph_local%C(:,:),     &
          auto_P     => autotroph_local%P(:,:),     &
+         auto_N     => autotroph_local%N(:,:),     &
          auto_Chl   => autotroph_local%Chl(:,:),   &
          auto_Fe    => autotroph_local%Fe(:,:),    &
          auto_Si    => autotroph_local%Si(:,:),    &
@@ -1244,6 +1271,8 @@ contains
          QCaCO3     => autotroph_derived_terms%QCaCO3(:,:), & ! current CaCO3/C ratio (mmol CaCO3/mmol C)
          Qp         => autotroph_derived_terms%Qp(:,:),     & ! current P/C ratio (mmol P/mmol C)
          gQp        => autotroph_derived_terms%gQp(:,:),    & ! P/C for growth
+         Qn         => autotroph_derived_terms%Qn(:,:),     & ! current N/C ratio (nmol N/nmol C)
+         gQn        => autotroph_derived_terms%gQn(:,:),    & ! N/C for growth
          Qfe        => autotroph_derived_terms%Qfe(:,:),    & ! current Fe/C ratio (mmol Fe/mmol C)
          gQfe       => autotroph_derived_terms%gQfe(:,:),   & ! Fe/C for growth
          Qsi        => autotroph_derived_terms%Qsi(:,:),    & ! current Si/C ratio (mmol Si/mmol C)
@@ -1256,53 +1285,87 @@ contains
 
       do auto_ind = 1, autotroph_cnt
         thetaC(auto_ind,:) = auto_Chl(auto_ind,:) / (auto_C(auto_ind,:) + epsC)
-        if (lvariable_PtoC) then
-          Qp(auto_ind,:) = auto_P(auto_ind,:) / (auto_C(auto_ind,:) + epsC)
-          !-----------------------------------------------------------------------
-          !-- Calculate Qp for new growth based on Galbraith and Martiny (2015), with min. N/P
-          ! - 14= 0.00976801, 14.5 = 0.00944239 15= 0.00911677 15.5=0.00882272 16= 0.00854701
-          ! - std intercept 6.0 = 166.66maxCP, 5.26=190, 4.0 = 250, 3.0 = 333.33
-          !-----------------------------------------------------------------------
-          gQp(auto_ind,:) = min((((PquotaSlope * PO4_loc(:)) + PquotaIntercept) * 0.001_r8), PquotaMinNP)
-        else
-          Qp(auto_ind,:) = autotroph_settings(auto_ind)%Qp_fixed
-          gQp(auto_ind,:) = autotroph_settings(auto_ind)%Qp_fixed
-        endif
-        !  Uncomment this line to use modified, fixed Redfield (C/N/P 117/16/1) stoichiomdetry
-        !      gQp(auto_ind) = 0.00854701_r8      ! fixed Redfield C/N/P
 
-        !-----------------------------------------------------------------------
-        !  DETERMINE NEW ELEMENTAL RATIOS FOR GROWTH (NEW BIOMASS)
-        !-----------------------------------------------------------------------
+       !-----------------------------------------------------------------------
+       !  DETERMINE NEW ELEMENTAL RATIOS FOR GROWTH (NEW BIOMASS)
+       !  Modify these initial ratios under low ambient iron conditions
+       !  Modify the inital Si/C ratio under low ambient Si conditions
+       !-----------------------------------------------------------------------
 
         Qfe(auto_ind,:) = auto_Fe(auto_ind,:) / (auto_C(auto_ind,:) + epsC)
-        gQfe(auto_ind,:) = autotroph_settings(auto_ind)%gQfe_0
-        where (Fe_loc(:) < gQ_Fe_kFe_thres * autotroph_settings(auto_ind)%kFe)
+        gQfe(auto_ind,:) = autotroph_settings(auto_ind)%gQfe_max
+        where (Fe_loc(:) < autotroph_settings(auto_ind)%FeOpt)
           gQfe(auto_ind,:) = max((gQfe(auto_ind,:) * Fe_loc(:) &
-                                  / (gQ_Fe_kFe_thres * autotroph_settings(auto_ind)%kFe)), &
+                                  / (autotroph_settings(auto_ind)%FeOpt)), &
                                  autotroph_settings(auto_ind)%gQfe_min)
         end where
 
         if (marbl_tracer_indices%auto_inds(auto_ind)%Si_ind > 0) then
           Qsi(auto_ind,:) = min(auto_Si(auto_ind,:) / (auto_C(auto_ind,:) + epsC), gQsi_max)
           gQsi(auto_ind,:) = gQsi_0
-
           !  Modify these initial ratios under low ambient iron conditions
-          where ((Fe_loc(:) < gQ_Fe_kFe_thres * autotroph_settings(auto_ind)%kFe) &
+          where ((Fe_loc(:) < autotroph_settings(auto_ind)%FeOpt) &
               .and. (Fe_loc(:) > c0) &
-              .and. (SiO3_loc(:) > (gQ_Si_kSi_thres * autotroph_settings(auto_ind)%kSiO3)))
-            gQsi(auto_ind,:) = min((gQsi(auto_ind,:) * gQ_Fe_kFe_thres &
-                             * autotroph_settings(auto_ind)%kFe / Fe_loc(:)), gQsi_max)
+              .and. (SiO3_loc(:) > (autotroph_settings(auto_ind)%SiOpt)))
+            gQsi(auto_ind,:) = min((gQsi(auto_ind,:) &
+                             * autotroph_settings(auto_ind)%FeOpt / Fe_loc(:)), gQsi_max)
           else where (Fe_loc(:) == c0)
             gQsi(auto_ind,:) = gQsi_max
           end where
 
           !  Modify the initial si/C ratio under low ambient Si conditions
-          where (SiO3_loc(:) < (gQ_Si_kSi_thres * autotroph_settings(auto_ind)%kSiO3))
+          where (SiO3_loc(:) < (autotroph_settings(auto_ind)%SiOpt))
             gQsi(auto_ind,:) = max((gQsi(auto_ind,:) * SiO3_loc(:) &
-                             / (gQ_Si_kSi_thres * autotroph_settings(auto_ind)%kSiO3)), gQsi_min)
+                             / (autotroph_settings(auto_ind)%SiOpt)), gQsi_min)
           end where
         end if
+
+        !------------------------------------------------------------------------
+        ! Calculate Qn for new growth based on Glabraith and Martiny (2015),
+        ! with minimum imposed as in Wang et al. (2019)
+        !------------------------------------------------------------------------
+        if (lvariable_NtoC) then
+          Qn(auto_ind,:) = auto_N(auto_ind,:) / (auto_C(auto_ind,:) + epsC)
+          WORK1 = max((NO3_loc(:) + NH4_loc(:)),c0)
+          gQn(auto_ind,:) = autotroph_settings(auto_ind)%gQn_max
+          where (WORK1 < autotroph_settings(auto_ind)%NOpt)
+            gQn(auto_ind,:) = &
+              max((gQn(auto_ind,:) * WORK1/autotroph_settings(auto_ind)%NOpt), autotroph_settings(auto_ind)%gQn_min)
+          endwhere
+        else
+          Qn(auto_ind,:) = Q
+          gQn(auto_ind,:) = Q
+        endif
+
+        !------------------------------------------------------------------------
+        ! Calculate Qp for new growth based on Galbraith and Martiny (2015),
+        ! with minimum N/P imposed as in Wang et al. 2019,
+        ! now implemented in the standard format as for other nutrients
+        ! reduce P uptake proportional to gQn relative to gQmax, to maintain N/P
+        !------------------------------------------------------------------------
+        if (lvariable_PtoC) then
+          Qp(auto_ind,:) = auto_P(auto_ind,:) / (auto_C(auto_ind,:) + epsC)
+          gQp(auto_ind,:) = autotroph_settings(auto_ind)%gQp_max
+
+          where ((PO4_loc(:) + DOP_loc(:)) < autotroph_settings(auto_ind)%POpt)
+            gQp(auto_ind,:) = &
+              max(gQp(auto_ind,:) * (PO4_loc(:) + DOP_loc(:)) / autotroph_settings(auto_ind)%POpt, &
+              autotroph_settings(auto_ind)%gQp_min)
+          endwhere
+
+          ! Apply threshold if using variable N:C
+          if (lvariable_NtoC) then
+            where (WORK1 < autotroph_settings(auto_ind)%Nopt)
+              gQp(auto_ind,:) = &
+                max(gQp(auto_ind,:) * WORK1 / autotroph_settings(auto_ind)%NOpt, &
+                  autotroph_settings(auto_ind)%gQp_min * 0.5_r8)
+            endwhere
+          endif
+
+        else
+          Qp(auto_ind,:) = autotroph_settings(auto_ind)%Qp_fixed
+          gQp(auto_ind,:) = autotroph_settings(auto_ind)%Qp_fixed
+        endif
 
         !-----------------------------------------------------------------------
         !  QCaCO3 is the percentage of sp organic matter which is associated
@@ -1441,7 +1504,8 @@ contains
          light_lim => autotroph_derived_terms%light_lim(:,:), &
          PCPhoto   => autotroph_derived_terms%PCPhoto(:,:),   &
          photoC    => autotroph_derived_terms%photoC(:,:),    &
-         photoacc  => autotroph_derived_terms%photoacc(:,:)   &
+         photoacc  => autotroph_derived_terms%photoacc(:,:),  &
+         gQn       => autotroph_derived_terms%gQn(:, :)       &
          )
 
       do auto_ind = 1, autotroph_cnt
@@ -1467,7 +1531,7 @@ contains
 
                 ! GD 98 Chl. synth. term
                 pChl_subcol = autotroph_settings(auto_ind)%thetaN_max * PCphoto_subcol / work
-                photoacc_subcol = (pChl_subcol * PCphoto_subcol * Q / thetaC(auto_ind,k)) &
+                photoacc_subcol = (pChl_subcol * PCphoto_subcol * gQn(auto_ind,k) / thetaC(auto_ind,k)) &
                                 * autotroph_local%Chl(auto_ind,k)
 
                 light_lim(auto_ind,k) = light_lim(auto_ind,k) + PAR_col_frac(subcol_ind) * light_lim_subcol
@@ -1660,7 +1724,6 @@ contains
     !  Diazotrophs fix more than they need then 20% is excreted
     !-----------------------------------------------------------------------
 
-    use marbl_settings_mod, only : Q
     use marbl_settings_mod, only : r_Nfix_photo
 
     integer,                            intent(in)    :: km
@@ -1673,17 +1736,18 @@ contains
     real(r8) :: work1(km)
     !-----------------------------------------------------------------------
 
-    associate(                                              &
-         photoC   => autotroph_derived_terms%photoC(:, :),  & ! input
-         NO3_V    => autotroph_derived_terms%NO3_V(:, :),   & ! input
-         NH4_V    => autotroph_derived_terms%NH4_V(:, :),   & ! input
-         Nfix     => autotroph_derived_terms%Nfix(:, :),    & ! output total Nitrogen fixation (mmol N/m^3/sec)
-         Nexcrete => autotroph_derived_terms%Nexcrete(:, :) & ! output fixed N excretion
+    associate(                                               &
+         photoC   => autotroph_derived_terms%photoC(:, :),   & ! input
+         NO3_V    => autotroph_derived_terms%NO3_V(:, :),    & ! input
+         NH4_V    => autotroph_derived_terms%NH4_V(:, :),    & ! input
+         gQn      => autotroph_derived_terms%gQn(:, :),      & ! input
+         Nfix     => autotroph_derived_terms%Nfix(:, :),     & ! output total Nitrogen fixation (mmol N/m^3/sec)
+         Nexcrete => autotroph_derived_terms%Nexcrete(:, :)  & ! output fixed N excretion
          )
 
       do auto_ind = 1, autotroph_cnt
         if (autotroph_settings(auto_ind)%Nfixer) then
-          work1(:) = photoC(auto_ind,:) * Q
+          work1(:) = photoC(auto_ind,:) * gQn(auto_ind,:)
           Nfix(auto_ind,:) = (work1(:) * r_Nfix_photo) - NO3_V(auto_ind,:) - NH4_V(auto_ind,:)
           Nexcrete(auto_ind,:) = Nfix(auto_ind,:) + NO3_V(auto_ind,:) + NH4_V(auto_ind,:) - work1(:)
         endif
@@ -1701,8 +1765,6 @@ contains
     !  Get nutrient uptakes by small phyto based on calculated C fixation
     !-----------------------------------------------------------------------
 
-    use marbl_settings_mod, only : Q
-
     type(marbl_tracer_index_type),      intent(in)    :: marbl_tracer_indices
     type(autotroph_derived_terms_type), intent(inout) :: autotroph_derived_terms
 
@@ -1714,6 +1776,7 @@ contains
 
     associate(                                              &
          gQp      => autotroph_derived_terms%gQp(:, :),     & ! p/C for growth
+         gQn      => autotroph_derived_terms%gQn(:, :),     & ! n/c for growth
          gQfe     => autotroph_derived_terms%gQfe(:, :),    & ! fe/C for growth
          gQsi     => autotroph_derived_terms%gQsi(:, :),    & ! diatom Si/C ratio for growth (new biomass)
          VNO3     => autotroph_derived_terms%VNO3(:, :),    & ! input
@@ -1735,8 +1798,8 @@ contains
 
         do k=1,size(VNtot,2)
           if (VNtot(auto_ind,k) > c0) then
-            NO3_V(auto_ind,k) = (VNO3(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * Q
-            NH4_V(auto_ind,k) = (VNH4(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * Q
+            NO3_V(auto_ind,k) = (VNO3(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * gQn(auto_ind,k)
+            NH4_V(auto_ind,k) = (VNH4(auto_ind,k) / VNtot(auto_ind,k)) * photoC(auto_ind,k) * gQn(auto_ind,k)
           else
             NO3_V(auto_ind,k) = c0
             NH4_V(auto_ind,k) = c0
@@ -1752,7 +1815,7 @@ contains
         end do
 
         !-----------------------------------------------------------------------
-        !  Get nutrient uptake by diatoms based on C fixation
+        !  Get Si uptake by diatoms based on C fixation
         !-----------------------------------------------------------------------
 
         photoFe(auto_ind,:) = photoC(auto_ind,:) * gQfe(auto_ind,:)
@@ -1912,7 +1975,7 @@ contains
     integer  :: zoo_ind, zoo_ind2
     integer  :: pred_ind
     integer  :: prey_ind
-    real(r8) :: work1, work2, work3, work4
+    real(r8) :: density1, work1, work2, work3, work4
     real(r8) :: graze_rate
     !-----------------------------------------------------------------------
 
@@ -1960,18 +2023,37 @@ contains
 
           do prey_ind = 1, max_grazer_prey_cnt
 
+            density1 = c0 ! biomass in prey class prey_ind
+            do auto_ind2 = 1, grazing_relationship_settings(prey_ind, pred_ind)%auto_ind_cnt
+              auto_ind = grazing_relationship_settings(prey_ind, pred_ind)%auto_ind(auto_ind2)
+              density1 = density1 + Pprime(auto_ind,k)**2
+            end do
+
+            do zoo_ind2 = 1, grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind_cnt
+              zoo_ind = grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind(zoo_ind2)
+              density1 = density1 + Zprime(zoo_ind,k)**2
+            end do
+            density1 = sqrt(density1)
             !-----------------------------------------------------------------------
             !  compute sum of carbon in the grazee class, both autotrophs and zoop
             !-----------------------------------------------------------------------
             work1 = c0 ! biomass in prey class prey_ind
             do auto_ind2 = 1, grazing_relationship_settings(prey_ind, pred_ind)%auto_ind_cnt
               auto_ind = grazing_relationship_settings(prey_ind, pred_ind)%auto_ind(auto_ind2)
+              if (density1 > c0) then
+              work1 = work1 + (Pprime(auto_ind,k)/density1) * Pprime(auto_ind,k)
+              else
               work1 = work1 + Pprime(auto_ind,k)
+              end if
             end do
 
             do zoo_ind2 = 1, grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind_cnt
               zoo_ind = grazing_relationship_settings(prey_ind, pred_ind)%zoo_ind(zoo_ind2)
-              work1 = work1 + Zprime(zoo_ind,k)
+              if (density1 > c0) then
+                work1 = work1 + (Zprime(zoo_ind,k)/density1) * Zprime(zoo_ind,k)
+              else
+                work1 = work1 + Zprime(zoo_ind,k)
+              end if
             end do
 
             ! compute grazing rate
@@ -2089,6 +2171,7 @@ contains
 
     use marbl_settings_mod, only : parm_labile_ratio
     use marbl_settings_mod, only : f_toDOP
+    use marbl_settings_mod, only : f_toDON
 
     integer,                              intent(in)    :: km
     type(zooplankton_derived_terms_type), intent(inout) :: zooplankton_derived_terms
@@ -2098,11 +2181,15 @@ contains
     !  local variables
     !-----------------------------------------------------------------------
     integer  :: k, auto_ind, zoo_ind
-    real(r8) :: remaining_P      ! used in routing P from autotrophs
+    real(r8) :: remaining_P     ! used in routing P from autotrophs
+    real(r8) :: remaining_N      ! used in routing N from autotrophs
+    real(r8) :: remaining_Fe     ! used in routing Fe from autotrophs
     !-----------------------------------------------------------------------
 
     associate(                                                           &
          Qp              => autotroph_derived_terms%Qp(:,:),             & ! input
+         Qn              => autotroph_derived_terms%Qn(:,:),             & ! input
+         Qfe             => autotroph_derived_terms%Qfe(:,:),            & ! input
          auto_graze      => autotroph_derived_terms%auto_graze(:,:),     & ! input
          auto_graze_zootot  => autotroph_derived_terms%auto_graze_zootot(:,:), & ! input
          auto_graze_poc  => autotroph_derived_terms%auto_graze_poc(:,:), & ! input
@@ -2123,6 +2210,12 @@ contains
          remaining_P_dop => autotroph_derived_terms%remaining_P_dop(:,:), & ! output
          remaining_P_pop => autotroph_derived_terms%remaining_P_pop(:,:), & ! output
          remaining_P_dip => autotroph_derived_terms%remaining_P_dip(:,:), & ! output
+         remaining_N_don => autotroph_derived_terms%remaining_N_don(:,:), & ! output
+         remaining_N_pon => autotroph_derived_terms%remaining_N_pon(:,:), & ! output
+         remaining_N_din => autotroph_derived_terms%remaining_N_din(:,:), & ! output
+         remaining_Fe_pfe => autotroph_derived_terms%remaining_Fe_pfe(:,:), & ! output
+         remaining_Fe_dfe => autotroph_derived_terms%remaining_Fe_dfe(:,:), & ! output
+
 
          zoo_graze_dic   => zooplankton_derived_terms%zoo_graze_dic(:,:), & ! output
          zoo_loss_poc    => zooplankton_derived_terms%zoo_loss_poc(:,:),  & ! output
@@ -2149,13 +2242,11 @@ contains
         !   - zooplankton linear and quadratic losses get routed to DOC, DIC, and POC
         !   - basal respiration losses only contribute to DIC
         !-----------------------------------------------------------------------
-
         do zoo_ind = 1, zooplankton_cnt
           zoo_loss_poc(zoo_ind,k) = f_zoo_detr(zoo_ind,k) * zoo_loss_bulk(zoo_ind,k)
           zoo_loss_doc(zoo_ind,k) = (c1 - parm_labile_ratio) * (c1 - f_zoo_detr(zoo_ind,k)) * zoo_loss_bulk(zoo_ind,k)
           zoo_loss_dic(zoo_ind,k) = (parm_labile_ratio * (c1 - f_zoo_detr(zoo_ind,k)) * zoo_loss_bulk(zoo_ind,k)) + &
                                     zoo_loss_basal(zoo_ind,k)
-
         end do
 
         !-----------------------------------------------------------------------
@@ -2163,7 +2254,6 @@ contains
         ! sinking POP is routed as POC * autoQp, but reduced where insuffient P is available
         ! The remaining P is split between DOP and PO4.
         !-----------------------------------------------------------------------
-
         do auto_ind = 1, autotroph_cnt
           remaining_P_pop(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
                                     * Qp(auto_ind,k)
@@ -2183,13 +2273,60 @@ contains
           ! increase fraction routed to dop, relative to doc 0.06, 0.94
           !    better matches DOP obs with var P quotas
           !-----------------------------------------------------------------------
-
           remaining_P_dop(auto_ind,k) = f_toDOP * remaining_P
           remaining_P_dip(auto_ind,k) = (c1 - f_toDOP) * remaining_P
+        end do
 
+        !-----------------------------------------------------------------------
+        ! We ensure the zooplankton pool gets its Fequota, fixed Fe/C ratio,
+        ! sinking pfe is routed as POC * autoQfe, but is reduced where insuffient Fe is available
+        ! The remaining Fe is routed to dFe.
+        !-----------------------------------------------------------------------
+        do auto_ind = 1, autotroph_cnt
+          remaining_Fe_pfe(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
+                                    * Qfe(auto_ind,k)
+
+          remaining_Fe = (auto_graze(auto_ind,k) + auto_loss(auto_ind,k) + auto_agg(auto_ind,k)) * Qfe(auto_ind,k) &
+                      - auto_graze_zootot(auto_ind,k) * Qfe_zoo - remaining_Fe_pfe(auto_ind,k)
+
+          !-----------------------------------------------------------------------
+          ! reduce sinking pfe if remaining_Fe is negative
+          !-----------------------------------------------------------------------
+          if (remaining_Fe < c0) then
+            remaining_Fe_pfe(auto_ind,k) = remaining_Fe_pfe(auto_ind,k) + remaining_Fe
+            remaining_Fe = c0
+          endif
+          remaining_Fe_dfe(auto_ind,k) = remaining_Fe
+        end do
+
+        !-----------------------------------------------------------------------
+        ! We ensure the zooplankton pool gets its Nquota, fixed N/C ratio,
+        ! sinking PON is routed as POC * autoQn, but reduced where insuffient N is available
+        ! The remaining N is split between DON and NH4.
+        !-----------------------------------------------------------------------
+        do auto_ind = 1, autotroph_cnt
+          remaining_N_pon(auto_ind,k) = (auto_graze_poc(auto_ind,k) + auto_loss_poc(auto_ind,k) + auto_agg(auto_ind,k)) &
+                                    * Qn(auto_ind,k)
+
+          remaining_N = (auto_graze(auto_ind,k) + auto_loss(auto_ind,k) + auto_agg(auto_ind,k)) * Qn(auto_ind,k) &
+                      - auto_graze_zootot(auto_ind,k) * Q - remaining_N_pon(auto_ind,k)
+
+          !-----------------------------------------------------------------------
+          ! reduce sinking pon if remaining_N is negative
+          !-----------------------------------------------------------------------
+          if (remaining_N < c0) then
+            remaining_N_pon(auto_ind,k) = remaining_N_pon(auto_ind,k) + remaining_N
+            remaining_N = c0
+          endif
+
+          !-----------------------------------------------------------------------
+          ! increase fraction routed to don, relative to doc 0.06, 0.94
+          !    better matches DON obs with var N quotas
+          !-----------------------------------------------------------------------
+          remaining_N_don(auto_ind,k) = f_toDON * remaining_N
+          remaining_N_din(auto_ind,k) = (c1 - f_toDON) * remaining_N
         end do
       end do
-
     end associate
 
   end subroutine compute_routing
@@ -2201,7 +2338,6 @@ contains
              zooplankton_derived_terms, autotroph_derived_terms, &
              dz1, tracer_local, unit_system, dissolved_organic_matter)
 
-    use marbl_settings_mod, only : Q
     use marbl_settings_mod, only : DOC_reminR_light
     use marbl_settings_mod, only : DON_reminR_light
     use marbl_settings_mod, only : DOP_reminR_light
@@ -2250,6 +2386,7 @@ contains
          PAR_avg         => PAR%avg(:,:),       &
 
          remaining_P_dop => autotroph_derived_terms%remaining_P_dop(:,:), & ! input
+         remaining_N_don => autotroph_derived_terms%remaining_N_don(:,:), & ! input
          auto_loss_doc   => autotroph_derived_terms%auto_loss_doc(:,:),   & ! input
          auto_graze_doc  => autotroph_derived_terms%auto_graze_doc(:,:),  & ! input
 
@@ -2273,7 +2410,8 @@ contains
 
       DOC_prod(:) = sum(zoo_loss_doc(:,:), dim=1) + sum(auto_loss_doc(:,:), dim=1) &
                   + sum(auto_graze_doc(:,:), dim=1) + sum(zoo_graze_doc(:,:), dim=1)
-      DON_prod(:) = Q * DOC_prod(:) * f_toDON
+      DON_prod(:) = Q * (sum(zoo_loss_doc(:,:), dim=1) + sum(zoo_graze_doc(:,:), dim=1)) &
+                  + sum(remaining_N_don(:,:), dim=1)
       DOP_prod(:) = Qp_zoo * (sum(zoo_loss_doc(:,:), dim=1) + sum(zoo_graze_doc(:,:), dim=1)) &
                   + sum(remaining_P_dop(:,:), dim=1)
 
@@ -2334,10 +2472,9 @@ contains
 
   !***********************************************************************
 
-  subroutine compute_scavenging(k, km, marbl_tracer_indices, &
-       tracer_local, POC, P_CaCO3, P_SiO2, dust, &
-       Fefree, Fe_scavenge_rate, Fe_scavenge, Lig_scavenge, &
-       marbl_status_log)
+  subroutine compute_scavenging(domain, k, km, marbl_tracer_indices, tracer_local, POC, &
+       P_CaCO3, P_SiO2, fesedflux, feventflux, dust, Fefree, Fe_scavenge_rate, Fe_scavenge, &
+       Lig_scavenge, marbl_status_log)
 
     use marbl_constants_mod, only : c3, c4
     use marbl_settings_mod , only : Lig_cnt
@@ -2345,7 +2482,9 @@ contains
     use marbl_settings_mod , only : parm_Lig_scavenge_rate0_yps
     use marbl_settings_mod , only : parm_FeLig_scavenge_rate0_yps
     use marbl_settings_mod , only : dust_Fe_scavenge_scale
+    use marbl_settings_mod , only : Fe_to_dust
 
+    type(marbl_domain_type),            intent(in)    :: domain
     integer,                            intent(in)    :: k
     integer,                            intent(in)    :: km
     type(marbl_tracer_index_type),      intent(in)    :: marbl_tracer_indices
@@ -2353,12 +2492,15 @@ contains
     type(column_sinking_particle_type), intent(in)    :: POC
     type(column_sinking_particle_type), intent(in)    :: P_CaCO3
     type(column_sinking_particle_type), intent(in)    :: P_SiO2
-    type(column_sinking_particle_type), intent(in)    :: dust
-    real(r8),                           intent(out)   :: Fefree(km)
-    real(r8),                           intent(out)   :: Fe_scavenge_rate(km)   ! scavenging rate of iron (1/s)
-    real(r8),                           intent(out)   :: Fe_scavenge(km)
-    real(r8),                           intent(out)   :: Lig_scavenge(km)
+    real(r8),                           intent(in)    :: fesedflux(km)           ! sedimentary Fe input
+    real(r8),                           intent(in)    :: feventflux(km)          ! vent Fe input
+    type(column_sinking_particle_type), intent(inout) :: dust
+    real(r8),                           intent(out)   :: Fefree
+    real(r8),                           intent(out)   :: Fe_scavenge_rate       ! scavenging rate of iron (1/s)
+    real(r8),                           intent(out)   :: Fe_scavenge
+    real(r8),                           intent(out)   :: Lig_scavenge
     type(marbl_log_type),               intent(inout) :: marbl_status_log
+
 
     !-----------------------------------------------------------------------
     !  local variables
@@ -2380,6 +2522,8 @@ contains
     real(kind=r8), parameter :: Lig2 = 0.002_r8      ! Lig2 are present everywhere at 2nM concentration
     integer                  :: n                    ! Newton's method loop index
     logical (log_kind)       :: Newton_convergence   ! has Newton's method converged
+    real(r8)                 :: dz_loc               ! dz at a particular i, j location
+    real(r8)                 :: dzr_loc              ! dzr at a particular i, j location
     real(r8)                 :: FeLig2               ! iron bound to ligand 2
     real(r8)                 :: Fefree_inc           ! increment in free iron in Newton's method
     real(r8)                 :: p0,p1,p2,p3          ! polynomial coefficients of Fefree_fcn
@@ -2387,9 +2531,15 @@ contains
     real(r8)                 :: dFefree_fcn          ! derivative of Fefree_fcn wrt Fefree
 
     associate(&
-         Fe_loc  => tracer_local(marbl_tracer_indices%Fe_ind, :), &
-         Lig_loc => tracer_local(marbl_tracer_indices%Lig_ind, :) &
+         Fe_loc   => tracer_local(marbl_tracer_indices%Fe_ind, :),   &
+         Lig_loc  => tracer_local(marbl_tracer_indices%Lig_ind, :),  &
+         DOC_loc  => tracer_local(marbl_tracer_indices%DOC_ind, :),  &
+         DOCr_loc => tracer_local(marbl_tracer_indices%DOCr_ind, :), &
+         delta_z  => domain%delta_z                                  &
          )
+
+      dz_loc = delta_z(k)
+      dzr_loc = c1 / dz_loc
 
       !-----------------------------------------------------------------------
       !  compute how much iron is bound to ligand
@@ -2424,11 +2574,11 @@ contains
           !
           ! the positive root arises from + in the quadratic formula,
           ! because p2 (= KFeLig1) is positive
-          Fefree(k) = (-p1 + sqrt(p1**2 - c4*p2*p0))/(c2*p2)
+          Fefree = (-p1 + sqrt(p1**2 - c4*p2*p0))/(c2*p2)
 
-          FeLig1 = KFeLig1 * Fefree(k) * Lig_loc(k) / (c1 + KFeLig1 * Fefree(k))
+          FeLig1 = KFeLig1 * Fefree * Lig_loc(k) / (c1 + KFeLig1 * Fefree)
         else ! Fe_loc(k) == 0
-          Fefree(k) = c0
+          Fefree = c0
           FeLig1 = c0
         end if
         FeLig2 = c0
@@ -2468,24 +2618,24 @@ contains
           p0 = -Fe_loc(k)
 
           ! initial iterate for Newton's method
-          Fefree(k) = Fe_loc(k)
+          Fefree = Fe_loc(k)
 
           Newton_convergence = .false.
 
           do n = 1,30 ! maximum number of iterations
             ! Horner's method to evaluate p0 + p1*Fefree + p2*Fefree^2 + p3*Fefree^3
-            Fefree_fcn  = p0 + Fefree(k)*(p1 + Fefree(k)*(p2 + p3*Fefree(k)))
+            Fefree_fcn  = p0 + Fefree*(p1 + Fefree*(p2 + p3*Fefree))
 
             ! Horner's method to evaluate p1 + (c2*p2)*Fefree + (c3*p3)*Fefree^2
-            dFefree_fcn = p1 + Fefree(k)*((c2*p2) + (c3*p3)*Fefree(k))
+            dFefree_fcn = p1 + Fefree*((c2*p2) + (c3*p3)*Fefree)
 
             ! Newton's method
             Fefree_inc  = Fefree_fcn / dFefree_fcn
-            Fefree(k)      = Fefree(k) - Fefree_inc
+            Fefree      = Fefree - Fefree_inc
 
             ! Newton's method converges quadratically, once you are close to the solution.
             ! So if relative change in Fefree is small, then we have converged.
-            if (abs(Fefree_inc) .le. 1.0e-9_r8 * Fefree(k)) then
+            if (abs(Fefree_inc) .le. 1.0e-9_r8 * Fefree) then
               Newton_convergence = .true.
               exit
             end if
@@ -2504,10 +2654,10 @@ contains
             return
           end if
 
-          FeLig1 = KFeLig1 * (Fefree(k) * Lig_loc(k)) / (c1 + KFeLig1*Fefree(k))
-          FeLig2 = KFeLig2 * (Fefree(k) * Lig_loc(k)) / (c1 + KFeLig2*Fefree(k))
+          FeLig1 = KFeLig1 * (Fefree * Lig_loc(k)) / (c1 + KFeLig1*Fefree)
+          FeLig2 = KFeLig2 * (Fefree * Lig_loc(k)) / (c1 + KFeLig2*Fefree)
         else ! Fe_loc(k) == 0
-          Fefree(k) = c0
+          Fefree = c0
           FeLig1 = c0
           FeLig2 = c0
         end if
@@ -2517,7 +2667,7 @@ contains
       !  Compute iron and ligand scavenging :
       !  1) compute in terms of loss per year per unit iron (%/year/fe)
       !  2) scale by sinking mass flux (POM + Dust + bSi + CaCO3)
-      !    POC x 12.01 x 3.0 = 36.03 > POM,
+      !    POC x 12.01 x 2.0 = 24.02 > POM,
       !              remin, particle number, and TEP production all scale with POC
       !  3) Scavenging linear function of sinking mass,
       !     1.6 ng/cm2/s = 500g/m2/yr, 1.44 450g/m2/yr,
@@ -2525,18 +2675,32 @@ contains
       ! scavenging of FeLig2 is not implemented
       !-----------------------------------------------------------------------
 
+      ! TODO: we do not want this to be zero permanently, but it is causing issues
+      !       in MOM6
+      ! NOTE: we are intentionally multiplying by 0 to maintain usage of fesedflux and
+      !       feventflux (gfortran elevates warnings to errors and we want to avoid
+      !       unused variable warnings; this is preferable to removing the variables
+      !       from the API and putting them back in when we are ready for non-zero dust%prod
+      dust%prod(k) = c0 * (((fesedflux(k) * Fe_to_dust) * dust_per_unit_fesedflux) &
+                   + ((feventflux(k) * Fe_to_dust) * dust_per_unit_feventflux)) * dzr_loc
+
       ! sinking_mass: ng/cm^2/s in cgs, mg/m^2/s in mks
-      sinking_mass = (POC%sflux_in(k)     + POC%hflux_in(k)    ) * (3.0_r8 * 12.01_r8) &
+      sinking_mass = (POC%sflux_in(k)     + POC%hflux_in(k)    ) * 24.02_r8 &
                    + (P_CaCO3%sflux_in(k) + P_CaCO3%hflux_in(k)) * P_CaCO3%mass &
                    + (P_SiO2%sflux_in(k)  + P_SiO2%hflux_in(k) ) * P_SiO2%mass &
-                   + (dust%sflux_in(k)    + dust%hflux_in(k)   ) * dust_Fe_scavenge_scale
+                   + (dust%sflux_in(k) + dust%hflux_in(k) + dust%prod(k) * dz_loc) * dust_Fe_scavenge_scale
 
-      Fe_scavenge_rate(k) = parm_Fe_scavenge_rate0_yps * sinking_mass
+
+      if ((DOC_loc(k) .gt. c0) .and. (DOCr_loc(k) .gt. c0)) then
+        sinking_mass = sinking_mass * (((DOC_loc(k) * 1.6_r8) + DOCr_loc(k)) / DOCr_loc(k))
+      endif
+
+      Fe_scavenge_rate    = parm_Fe_scavenge_rate0_yps * sinking_mass
       Lig_scavenge_rate   = parm_Lig_scavenge_rate0_yps * sinking_mass
       FeLig_scavenge_rate = parm_FeLig_scavenge_rate0_yps * sinking_mass
 
-      Lig_scavenge(k) = FeLig1 * Lig_scavenge_rate
-      Fe_scavenge(k)  = Fefree(k) * Fe_scavenge_rate(k) + FeLig1 * FeLig_scavenge_rate
+      Lig_scavenge = FeLig1 * Lig_scavenge_rate
+      Fe_scavenge  = Fefree * Fe_scavenge_rate + FeLig1 * FeLig_scavenge_rate
 
     end associate
 
@@ -2546,10 +2710,11 @@ contains
 
    subroutine compute_large_detritus_prod(k, domain, marbl_tracer_indices, &
         zooplankton_derived_terms, autotroph_derived_terms, &
-        Fe_scavenge, POC, POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, &
-        DOP_loss_P_bal, marbl_status_log)
+        Fe_scavenge, POC, POP, PON, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, P_iron, &
+        DOP_loss_P_bal, DON_loss_N_bal, marbl_status_log)
 
      use marbl_settings_mod, only : Jint_Ptot_thres
+     use marbl_settings_mod, only : Jint_Ntot_thres
      use marbl_settings_mod, only : f_graze_CaCO3_remin
      use marbl_settings_mod, only : f_graze_si_remin
      use marbl_settings_mod, only : Qfe_zoo
@@ -2567,12 +2732,13 @@ contains
      real(r8),                             intent(in)    :: Fe_scavenge
      type(column_sinking_particle_type),   intent(inout) :: POC
      type(column_sinking_particle_type),   intent(inout) :: POP
+     type(column_sinking_particle_type),   intent(inout) :: PON
      type(column_sinking_particle_type),   intent(inout) :: P_CaCO3
      type(column_sinking_particle_type),   intent(inout) :: P_CaCO3_ALT_CO2
      type(column_sinking_particle_type),   intent(inout) :: P_SiO2
-     type(column_sinking_particle_type),   intent(inout) :: dust
      type(column_sinking_particle_type),   intent(inout) :: P_iron
      real(r8),                             intent(out)   :: DOP_loss_P_bal
+     real(r8),                             intent(out)   :: DON_loss_N_bal
      type(marbl_log_type),                 intent(inout) :: marbl_status_log
 
      !-----------------------------------------------------------------------
@@ -2595,6 +2761,8 @@ contains
           auto_loss       => autotroph_derived_terms%auto_loss(:,k),       & ! input
           auto_loss_poc   => autotroph_derived_terms%auto_loss_poc(:,k),   & ! input
           remaining_P_pop => autotroph_derived_terms%remaining_P_pop(:,k), & ! input
+          remaining_N_pon => autotroph_derived_terms%remaining_N_pon(:,k), & ! input
+          remaining_Fe_pfe => autotroph_derived_terms%remaining_Fe_pfe(:,k), & ! input
           zoo_loss_poc    => zooplankton_derived_terms%zoo_loss_poc(:,k),  & ! input
           zoo_graze_poc   => zooplankton_derived_terms%zoo_graze_poc(:,k)  & ! input
           )
@@ -2628,6 +2796,35 @@ contains
      endif
 
      !-----------------------------------------------------------------------
+     !  large detritus N
+     !-----------------------------------------------------------------------
+
+     PON%prod(k) = Q * (sum(zoo_loss_poc(:)) + sum(zoo_graze_poc(:))) + sum(remaining_N_pon(:))
+
+     if (PON%prod(k) < c0) then
+        DON_loss_N_bal = -PON%prod(k)
+        PON%prod(k) = c0
+
+        !Write warning to log is omitting DON_loss_N_bal would have led to a Jint_Ntot error
+        if (domain%delta_z(k) * DON_loss_N_bal .gt. Jint_Ntot_thres) then
+           write(log_message,"(A,E11.3e3,A,E11.3e3)") &
+                'dz*DON_loss_N_bal=', domain%delta_z(k) * DON_loss_N_bal, &
+                ' exceeds Jint_Ntot_thres=', Jint_Ntot_thres
+           call marbl_status_log%log_warning(log_message, subname, ElemInd=k)
+        end if
+     else
+        DON_loss_N_bal = c0
+     endif
+
+     !-----------------------------------------------------------------------
+     ! Iron
+     !-----------------------------------------------------------------------
+
+     P_iron%prod(k) = (sum(zoo_loss_poc(:)) + sum(zoo_graze_poc(:))) * Qfe_zoo &
+                  + Fe_scavenge + sum(remaining_Fe_pfe(:))
+
+
+     !-----------------------------------------------------------------------
      !  large detrital CaCO3
      !  33% of CaCO3 is remin when phyto are grazed
      !-----------------------------------------------------------------------
@@ -2635,7 +2832,8 @@ contains
      P_CaCO3%prod(k) = c0
      do auto_ind = 1, autotroph_cnt
         if (marbl_tracer_indices%auto_inds(auto_ind)%CaCO3_ind > 0) then
-           P_CaCO3%prod(k) = P_CaCO3%prod(k) + ((c1 - f_graze_CaCO3_remin) * auto_graze(auto_ind) &
+           P_CaCO3%prod(k) = P_CaCO3%prod(k) &
+                + ((c1 - f_graze_CaCO3_remin) * auto_graze(auto_ind) &
                 + auto_loss(auto_ind) + auto_agg(auto_ind)) * QCaCO3(auto_ind)
         endif
      end do
@@ -2655,33 +2853,17 @@ contains
         endif
      end do
 
-     !-----------------------------------------------------------------------
-     ! Dust
-     !-----------------------------------------------------------------------
-
-     dust%prod(k) = c0
-
-     !-----------------------------------------------------------------------
-     ! Iron
-     !-----------------------------------------------------------------------
-
-     P_iron%prod(k) = (sum(zoo_loss_poc(:)) + sum(zoo_graze_poc(:))) * Qfe_zoo + Fe_scavenge
-
-     do auto_ind = 1, autotroph_cnt
-        P_iron%prod(k) = P_iron%prod(k) + Qfe(auto_ind) * &
-             (auto_agg(auto_ind) + auto_graze_poc(auto_ind) + auto_loss_poc(auto_ind))
-     end do
-
      end associate
    end subroutine compute_large_detritus_prod
 
    !***********************************************************************
 
-   subroutine compute_particulate_terms(k, domain, bot_flux_to_tend, p_remin_scalef, &
-              tracer_local, carbonate, fesedflux, marbl_tracer_indices, unit_system, &
-              PON_remin, POC, POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, &
-              QA_dust_def, sed_denitrif, other_remin, marbl_particulate_share, &
-              glo_avg_fields_interior_tendency, PON_sed_loss, marbl_status_log)
+   subroutine compute_particulate_terms(k, domain, bot_flux_to_tend, p_remin_scalef,  &
+              tracer_local, carbonate, fesedflux, feRedsedflux, feventflux,           &
+              marbl_tracer_indices, unit_system, POC, POP, PON, P_CaCO3,              &
+              P_CaCO3_ALT_CO2, P_SiO2, Lig_prod, dust, P_iron, QA_dust_def,           &
+              denitrif_C_N, sed_denitrif, other_remin, marbl_particulate_share,       &
+              glo_avg_fields_interior_tendency, marbl_status_log)
 
      !  Compute outgoing fluxes and remineralization terms. Assumes that
      !  production terms have been set. Incoming fluxes are assumed to be the
@@ -2743,6 +2925,7 @@ contains
      use marbl_settings_mod, only : o2_sf_o2_range_hi
      use marbl_settings_mod, only : o2_sf_o2_range_lo
      use marbl_settings_mod, only : o2_sf_val_lo_o2
+     use marbl_settings_mod , only : dust_to_Fe
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_CaCO3_bury
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_POC_bury
      use marbl_glo_avg_mod, only : glo_avg_field_ind_interior_tendency_POP_bury
@@ -2759,23 +2942,26 @@ contains
      real (r8)                         , intent(in)    :: p_remin_scalef      ! Particulate Remin Scale Factor
      real (r8), dimension(:,:)         , intent(in)    :: tracer_local        ! local copies of model tracer concentrations
      type(carbonate_type)              , intent(in)    :: carbonate
-     real(r8)                          , intent(in)    :: fesedflux           ! sedimentary Fe input
+     real(r8), dimension(:)            , intent(in)    :: fesedflux           ! sedimentary Fe input
+     real(r8)                          , intent(in)    :: feRedsedflux(domain%km)        ! sedimentary Red Fe input
+     real(r8)                          , intent(in)    :: feventflux(domain%km)          ! vent Fe input
      type(marbl_tracer_index_type)     , intent(in)    :: marbl_tracer_indices
      type(unit_system_type)            , intent(in)    :: unit_system
-     real(r8)                          , intent(inout) :: PON_remin(domain%km)! remin of PON
      type(column_sinking_particle_type), intent(inout) :: POC                 ! base units = nmol C
      type(column_sinking_particle_type), intent(inout) :: POP                 ! base units = nmol P
+     type(column_sinking_particle_type), intent(inout) :: PON                 ! base units = nmol N
      type(column_sinking_particle_type), intent(inout) :: P_CaCO3             ! base units = nmol CaCO3
      type(column_sinking_particle_type), intent(inout) :: P_CaCO3_ALT_CO2     ! base units = nmol CaCO3
      type(column_sinking_particle_type), intent(inout) :: P_SiO2              ! base units = nmol SiO2
+     real(r8), dimension(:)            , intent(inout) :: Lig_prod            ! vent ligand inputs
      type(column_sinking_particle_type), intent(inout) :: dust                ! base units = g
      type(column_sinking_particle_type), intent(inout) :: P_iron              ! base units = nmol Fe
      real (r8)                         , intent(inout) :: QA_dust_def         ! incoming deficit in the QA(dust) POC flux (molar prefix*mol/L^2/s)
+     real (r8)                         , intent(inout) :: denitrif_C_N(:)     ! C/N of denitrification
      real (r8), dimension(:)           , intent(inout) :: sed_denitrif        ! sedimentary denitrification (umolN/cm^2/s)
-     real (r8), dimension(:)           , intent(inout) :: other_remin         ! sedimentary remin not due to oxic or denitrification
+     real (r8), dimension(:)           , intent(inout) :: other_remin         ! sedimentary remin not oxic or denitrification
      type(marbl_particulate_share_type), intent(inout) :: marbl_particulate_share
      real (r8)                         , intent(inout) :: glo_avg_fields_interior_tendency(:)
-     real(r8)                          , intent(out)   :: PON_sed_loss        ! loss of PON to sediments
      type(marbl_log_type)              , intent(inout) :: marbl_status_log
 
      !-----------------------------------------------------------------------
@@ -2806,8 +2992,8 @@ contains
           flux_top, flux_bot, & ! total (sflux+hflux) particulate fluxes at top and bottom of layer
           wbot,               & ! weight for interpolating fluxes vertically
           flux_alt,           & ! flux to floor in alternative units, to match particular parameterizations
-          bury_frac,          & ! fraction of flux hitting floor that gets buried
-          dz_loc, dzr_loc       ! dz, dzr at a particular i, j location
+          bury_frac,                & ! fraction of flux hitting floor that gets buried
+          dz_loc, dzr_loc, dzr_mod    ! dz, dzr, dzr_mod at a particular i, j location
 
      integer (int_kind) :: n     ! loop indices
 
@@ -2855,7 +3041,7 @@ contains
      if (p_remin_scalef /= c1) scalelength = scalelength / p_remin_scalef
 
      DECAY_Hard     = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 4.0e6_r8)
-     DECAY_HardDust = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 1.2e8_r8)
+     DECAY_HardDust = exp(-delta_z(k) * unit_system%len2cm * p_remin_scalef / 3.22291e8_r8)
 
      poc_error = .false.
      dz_loc = delta_z(k)
@@ -2863,6 +3049,7 @@ contains
      if (k <= column_kmt) then
 
         dzr_loc    = c1 / dz_loc
+
         poc_diss   = POC%diss
         sio2_diss  = P_SiO2%diss
         caco3_diss = P_CaCO3%diss
@@ -2904,7 +3091,6 @@ contains
         !  The outoing fluxes for ballast materials are from the
         !  solution of the coresponding continuous ODE across the model
         !  level. The ODE has a constant source term and linear decay.
-        !  It is assumed that there is no sub-surface dust production.
         !-----------------------------------------------------------------------
 
         P_CaCO3%sflux_out(k) = P_CaCO3%sflux_in(k) * decay_CaCO3 + &
@@ -2922,15 +3108,16 @@ contains
              P_CaCO3_ALT_CO2%prod(k) * (P_CaCO3_ALT_CO2%gamma * dz_loc)
 
         P_SiO2%sflux_out(k) = P_SiO2%sflux_in(k) * decay_SiO2 + &
-             P_SiO2%prod(k) * ((c1 - P_SiO2%gamma) * (c1 - decay_SiO2) &
-             * sio2_diss)
+             P_SiO2%prod(k) * ((c1 - P_SiO2%gamma) * (c1 - decay_SiO2) * sio2_diss)
 
         P_SiO2%hflux_out(k) = P_SiO2%hflux_in(k) * DECAY_Hard + &
              P_SiO2%prod(k) * (P_SiO2%gamma * dz_loc)
 
-        dust%sflux_out(k) = dust%sflux_in(k) * decay_dust
+        dust%sflux_out(k) = dust%sflux_in(k) * decay_dust + &
+             dust%prod(k) * ((c1 - dust%gamma) * (c1 - decay_dust) * dust_diss)
 
-        dust%hflux_out(k) = dust%hflux_in(k) * DECAY_HardDust
+        dust%hflux_out(k) = dust%hflux_in(k) * DECAY_HardDust + &
+             dust%prod(k) * (dust%gamma * dz_loc)
 
         !-----------------------------------------------------------------------
         !  Compute how much POC_PROD is available for deficit reduction
@@ -2941,6 +3128,7 @@ contains
         POC_PROD_avail = POC%prod(k) - &
              P_CaCO3%rho * P_CaCO3%prod(k) - &
              P_SiO2%rho * P_SiO2%prod(k)
+
 
         !-----------------------------------------------------------------------
         !  Check for POC production bounds violations
@@ -3002,8 +3190,7 @@ contains
              POC_PROD_avail * ((c1 - decay_POC_E) * poc_diss)
 
         !-----------------------------------------------------------------------
-        !  Compute remineralization terms. It is assumed that there is no
-        !  sub-surface dust production.
+        !  Compute remineralization terms
         !-----------------------------------------------------------------------
 
         P_CaCO3%remin(k) = P_CaCO3%prod(k) + &
@@ -3022,15 +3209,15 @@ contains
              ((POC%sflux_in(k) - POC%sflux_out(k)) + &
              (POC%hflux_in(k) - POC%hflux_out(k))) * dzr_loc
 
-        PON_remin(k) = Q * POC%remin(k)
-
-        dust%remin(k) = &
+        dust%remin(k) = dust%prod(k) + &
              ((dust%sflux_in(k) - dust%sflux_out(k)) + &
              (dust%hflux_in(k) - dust%hflux_out(k))) * dzr_loc
 
         !-----------------------------------------------------------------------
         !  Compute iron remineralization and flux out.
         !-----------------------------------------------------------------------
+
+        P_iron%remin(k) = c0
 
         if (POC%sflux_in(k) + POC%hflux_in(k) == c0) then
            P_iron%remin(k) = (POC%remin(k) * parm_Red_Fe_C)
@@ -3040,9 +3227,15 @@ contains
                 (POC%sflux_in(k) + POC%hflux_in(k)))
         endif
 
+        !-----------------------------------------------------------------------
         ! add term for desorption of iron from sinking particles
+        !   dzr_mod increases slowly relative to dzr_loc
+        !   it accounts for the increasing sinking speed of particles with depth
+        !      less desorption with depth (as mean sinking speed increases)
+        !-----------------------------------------------------------------------
+        dzr_mod = min(c1, (dz_loc * unit_system%len2m)**(-0.36_r8))
         P_iron%remin(k) = P_iron%remin(k) +                &
-             (P_iron%sflux_in(k) * parm_Fe_desorption_rate0)
+             P_iron%sflux_in(k) * parm_Fe_desorption_rate0 * dzr_mod
 
         P_iron%sflux_out(k) = P_iron%sflux_in(k) + dz_loc * &
              ((c1 - P_iron%gamma) * P_iron%prod(k) - P_iron%remin(k))
@@ -3054,20 +3247,27 @@ contains
         endif
 
         !-----------------------------------------------------------------------
-        !  Compute iron release from dust remin/dissolution and add in Fe source
-        !  from sediments
+        !  Compute iron release from dust remin/dissolution and other Fe sources
         !-----------------------------------------------------------------------
 
+        P_iron%remin(k) = P_iron%remin(k)   &
+             + (dust%remin(k) * dust_to_Fe) &
+             + (fesedflux(k) * dzr_loc)        &
+             + (feRedsedflux(k) * dzr_loc)     &
+             + (feventflux(k) * dzr_loc)
 
-        P_iron%remin(k) = P_iron%remin(k) &
-             + dust%remin(k) * dust_to_Fe &
-             + (fesedflux * dzr_loc)
 
         P_iron%hflux_out(k) = P_iron%hflux_in(k)
 
- !------------------------------------------------------------------------
- !  compute POP remin and flux out, following code for iron
- !------------------------------------------------------------------------
+        !-----------------------------------------------------------------------
+        !  add ligand source from vents, proportional to Fe input
+        !-----------------------------------------------------------------------
+
+        Lig_prod(k) = feventflux(k) * dzr_loc * 0.15_r8
+
+        !------------------------------------------------------------------------
+        !  compute POP and PON remin and flux out, following code for iron
+        !------------------------------------------------------------------------
 
         POP%remin(k) = c0
         if (POC%sflux_in(k) + POC%hflux_in(k) > c0) then
@@ -3089,6 +3289,33 @@ contains
 
         POP%hflux_out(k) = POP%hflux_in(k)
 
+        PON%remin(k) = c0
+        if (POC%sflux_in(k) + POC%hflux_in(k) > c0) then
+           PON%remin(k) = POC%remin(k) * &
+              ((PON%sflux_in(k) + PON%hflux_in(k)) / &
+               (POC%sflux_in(k) + POC%hflux_in(k)))
+        else if (POC%prod(k) > c0) then
+           PON%remin(k) = POC%remin(k) * (PON%prod(k) / POC%prod(k))
+        end if
+
+        PON%sflux_out(k) = PON%sflux_in(k) + dz_loc * &
+           ((c1 - PON%gamma) * PON%prod(k) - PON%remin(k))
+
+        if (PON%sflux_out(k) < c0) then
+           PON%sflux_out(k) = c0
+           PON%remin(k) = PON%sflux_in(k) * dzr_loc + &
+              (c1 - PON%gamma) * PON%prod(k)
+        end if
+
+        PON%hflux_out(k) = PON%hflux_in(k)
+
+        if ((POC%sflux_out(k) > c0) .and. (POP%sflux_out(k) > c0) .and. &
+          (PON%sflux_out(k) > c0)) then
+            denitrif_C_N(k) = (POC%sflux_out(k)/(POP%sflux_out(k))) / &
+              ((POC%sflux_out(k)/(POP%sflux_out(k))) &
+              + (c2 * PON%sflux_out(k)/(POP%sflux_out(k)) * 0.8_r8))
+        endif
+
      else ! k > column_kmt
 
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, P_CaCO3)
@@ -3098,8 +3325,9 @@ contains
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, POC)
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, P_iron)
         call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, POP)
-        PON_remin(k) = c0
+        call marbl_interior_tendency_share_set_used_particle_terms_to_zero(k, PON)
         dzr_loc = c0
+        Lig_prod(k) = c0
 
      endif
 
@@ -3120,6 +3348,7 @@ contains
            ! expressions are simplified if particulate_flux_ref_depth is exactly the top of the layer
            POC%flux_at_ref_depth     = POC%sflux_in(k)     + POC%hflux_in(k)
            POP%flux_at_ref_depth     = POP%sflux_in(k)     + POP%hflux_in(k)
+           PON%flux_at_ref_depth     = PON%sflux_in(k)     + PON%hflux_in(k)
            P_CaCO3%flux_at_ref_depth = P_CaCO3%sflux_in(k) + P_CaCO3%hflux_in(k)
            P_SiO2%flux_at_ref_depth  = P_SiO2%sflux_in(k)  + P_SiO2%hflux_in(k)
            P_iron%flux_at_ref_depth  = P_iron%sflux_in(k)  + P_iron%hflux_in(k)
@@ -3133,6 +3362,10 @@ contains
            flux_top = POP%sflux_in(k) + POP%hflux_in(k)
            flux_bot = POP%sflux_out(k) + POP%hflux_out(k)
            POP%flux_at_ref_depth = flux_top + wbot * (flux_bot - flux_top)
+
+           flux_top = PON%sflux_in(k) + PON%hflux_in(k)
+           flux_bot = PON%sflux_out(k) + PON%hflux_out(k)
+           PON%flux_at_ref_depth = flux_top + wbot * (flux_bot - flux_top)
 
            flux_top = P_CaCO3%sflux_in(k) + P_CaCO3%hflux_in(k)
            flux_bot = P_CaCO3%sflux_out(k) + P_CaCO3%hflux_out(k)
@@ -3149,6 +3382,7 @@ contains
        else
          POC%flux_at_ref_depth     = c0
          POP%flux_at_ref_depth     = c0
+         PON%flux_at_ref_depth     = c0
          P_CaCO3%flux_at_ref_depth = c0
          P_SiO2%flux_at_ref_depth  = c0
          P_iron%flux_at_ref_depth  = c0
@@ -3176,13 +3410,13 @@ contains
 
      POC%sed_loss(k)             = c0
      POP%sed_loss(k)             = c0
+     PON%sed_loss(k)             = c0
      P_SiO2%sed_loss(k)          = c0
      P_CaCO3%sed_loss(k)         = c0
      P_CaCO3_ALT_CO2%sed_loss(k) = c0
      P_iron%sed_loss(k)          = c0
      dust%sed_loss(k)            = c0
-
-     PON_sed_loss        = c0
+     denitrif_C_N(k)             = 0.9375_r8
 
      if (k == column_kmt) then
 
@@ -3196,7 +3430,8 @@ contains
            if (p_remin_scalef /= c1) bury_frac = c1 - p_remin_scalef * (c1 - bury_frac)
            POC%sed_loss(k) = POC%to_floor * min(POM_bury_frac_max, POC_bury_coeff * bury_frac)
 
-           PON_sed_loss = PON_bury_coeff * Q * POC%sed_loss(k)
+           PON%to_floor = PON%sflux_out(k) + PON%hflux_out(k)
+           PON%sed_loss(k) = PON%to_floor * PON_bury_coeff * min(POM_bury_frac_max, POC_bury_coeff * bury_frac)
 
            POP%to_floor = POP%sflux_out(k) + POP%hflux_out(k)
            POP%sed_loss(k) = POP%to_floor * min(POM_bury_frac_max, POP_bury_coeff * bury_frac)
@@ -3220,13 +3455,13 @@ contains
            endif
 
            sed_denitrif(1:k) = bot_flux_to_tend(1:k) * parm_sed_denitrif_coeff * POC%to_floor &
-                * (0.06_r8 + 0.19_r8 * 0.99_r8**(O2_loc-NO3_loc))
+                * (0.06_r8 + 0.19_r8 * 0.99_r8**(O2_loc-NO3_loc)) * 1.5_r8
 
            flux_alt = POC%to_floor*(unit_system%conc_flux2mmol_m2s * (mpercm**2))*spy ! convert to mmol/cm^2/year
            other_remin(1:k) = min(bot_flux_to_tend(1:k) * &
                                   min(0.1_r8 + flux_alt, 0.5_r8) * (POC%to_floor - POC%sed_loss(k)), &
                                       bot_flux_to_tend(1:k) * (POC%to_floor - POC%sed_loss(k)) - &
-                                      (sed_denitrif(1:k)*denitrif_C_N))
+                                      (sed_denitrif(1:k)*denitrif_C_N(1:k)))
 
            !----------------------------------------------------------------------------------
            !              if bottom water O2 is depleted, assume all remin is denitrif + other
@@ -3234,12 +3469,14 @@ contains
 
            where (O2_loc_col(1:k) < c1)
               other_remin(1:k) = bot_flux_to_tend(1:k) * (POC%to_floor - POC%sed_loss(k)) - &
-                                 sed_denitrif(1:k)*denitrif_C_N
+                                 sed_denitrif(1:k)*denitrif_C_N(1:k)
            endwhere
 
         else
 
            POP%to_floor = POP%sflux_out(k) + POP%hflux_out(k)
+
+           PON%to_floor = PON%sflux_out(k) + PON%hflux_out(k)
 
            if (ladjust_bury_coeff) then
               glo_avg_fields_interior_tendency(glo_avg_field_ind_interior_tendency_POC_bury) = c0
@@ -3320,9 +3557,6 @@ contains
         if (POC%to_floor > c0) then
            POC%remin(1:k) = POC%remin(1:k) &
                 + ((POC%to_floor - POC%sed_loss(k)) * bot_flux_to_tend(1:k))
-
-           PON_remin(1:k) = PON_remin(1:k) &
-                + ((Q * POC%to_floor - PON_sed_loss) * bot_flux_to_tend(1:k))
         endif
 
         if (POP%to_floor > c0) then
@@ -3330,9 +3564,13 @@ contains
                 + ((POP%to_floor - POP%sed_loss(k)) * bot_flux_to_tend(1:k))
         endif
 
+        if (PON%to_floor > c0) then
+           PON%remin(1:k) = PON%remin(1:k) &
+                + ((PON%to_floor - PON%sed_loss(k)) * bot_flux_to_tend(1:k))
+        endif
         !-----------------------------------------------------------------------
         !   Remove all Piron and dust that hits bottom, sedimentary Fe source
-        !        accounted for by fesedflux elsewhere.
+        !        accounted for elsewhere. Remin C, N, P not buried.
         !-----------------------------------------------------------------------
 
         P_iron%to_floor = P_iron%sflux_out(k) + P_iron%hflux_out(k)
@@ -3374,7 +3612,7 @@ contains
     real(r8),                      intent(in)  :: Lig_scavenge(km)
     real(r8),                      intent(in)  :: photoFe(autotroph_cnt,km)
     type(unit_system_type),        intent(in)  :: unit_system
-    real(r8),                      intent(out) :: Lig_prod(km)
+    real(r8),                      intent(inout) :: Lig_prod(km)
     real(r8),                      intent(out) :: Lig_photochem(km)
     real(r8),                      intent(out) :: Lig_deg(km)
     real(r8),                      intent(out) :: Lig_loss(km)
@@ -3396,10 +3634,10 @@ contains
       !      and production of DOM
       !-----------------------------------------------------------------------
 
-      Lig_prod(:) = (POC_remin(:) * remin_to_Lig) + (DOC_prod(:) * remin_to_Lig)
+      Lig_prod(:) = Lig_prod(:) + (POC_remin(:) * remin_to_Lig) + (DOC_prod(:) * remin_to_Lig)
 
       !----------------------------------------------------------------------
-      !  Ligand losses due to photochemistry in first ocean layer
+      !  Ligand losses due to photochemistry in first ocean layer 1/3months
       !  ligand photo-oxidation a function of PAR (2/5/2015)
       !----------------------------------------------------------------------
 
@@ -3410,14 +3648,14 @@ contains
       do subcol_ind = 1, PAR_nsubcols
         if ((PAR_col_frac(subcol_ind) > c0) .and. (PAR%interface(0,subcol_ind) > 1.0_r8)) then
           rate_per_sec_subcol = (log(PAR%interface(0,subcol_ind))*0.4373_r8) &
-                              * (10._r8*unit_system%m2len/dz1)*((12.0_r8/3.0_r8)*yps) ! 1/(3 months)
+                              * (10._r8*unit_system%m2len/dz1)*(0.018_r8*dps)
           rate_per_sec = rate_per_sec + PAR_col_frac(subcol_ind) * rate_per_sec_subcol
         endif
       end do
       Lig_photochem(1) = Lig_loc(1) * rate_per_sec
 
       !----------------------------------------------------------------------
-      !  Ligand losses due to uptake/degradation (by hetrotrophic bacteria)
+      !  Ligand losses due to uptake/degradation (by hetrotrophic bacteria), scaled by POCremin
       !----------------------------------------------------------------------
 
       Lig_deg(:) = POC_remin(:) * parm_Lig_degrade_rate0
@@ -3426,8 +3664,16 @@ contains
       !  total ligand loss
       !----------------------------------------------------------------------
 
-      Lig_loss(:) = Lig_scavenge(:) + 0.20_r8*sum(photoFe(:,:),dim=1) + Lig_photochem(:) + Lig_deg(:)
+      Lig_loss(:) = Lig_scavenge(:) + 0.4_r8*sum(photoFe(:,:),dim=1) + Lig_photochem(:) + Lig_deg(:)
 
+      !----------------------------------------------------------------------
+      !  decrease phytoplankton uptake and bacterial degradation at low ligand conentrations
+      !----------------------------------------------------------------------
+      where (Lig_loc(:) < 1.25e-3_r8)
+         Lig_loss(:) = Lig_scavenge(:) + Lig_photochem(:) &
+                       + (0.4_r8* sum(photoFe(:,:),dim=1)  + Lig_deg(:)) &
+                       * (Lig_loc(:) / 1.25e-3_r8)
+      endwhere
     end associate
 
   end subroutine compute_Lig_terms
@@ -3493,21 +3739,22 @@ contains
   !***********************************************************************
 
   subroutine compute_denitrif(km, marbl_tracer_indices, tracer_local, DOC_remin, DOCr_remin,   &
-       POC_remin, other_remin, sed_denitrif, denitrif)
+       POC_remin, other_remin, denitrif_C_N, sed_denitrif, denitrif)
 
     !-----------------------------------------------------------------------
     !  Compute denitrification under low O2 conditions
     !-----------------------------------------------------------------------
 
-    integer,                       intent(in)    :: km
-    type(marbl_tracer_index_type), intent(in)    :: marbl_tracer_indices
-    real(r8),                      intent(in)    :: tracer_local(marbl_tracer_indices%total_cnt, km)
-    real(r8),                      intent(in)    :: DOC_remin(km)
-    real(r8),                      intent(in)    :: DOCr_remin(km)
-    real(r8),                      intent(in)    :: POC_remin(km)
-    real(r8),                      intent(in)    :: other_remin(km)
-    real(r8),                      intent(inout) :: sed_denitrif(km)
-    real(r8),                      intent(out)   :: denitrif(km)
+    integer,                            intent(in)    :: km
+    type(marbl_tracer_index_type),      intent(in)    :: marbl_tracer_indices
+    real(r8),                           intent(in)    :: tracer_local(marbl_tracer_indices%total_cnt, km)
+    real(r8),                           intent(in)    :: DOC_remin(km)
+    real(r8),                           intent(in)    :: DOCr_remin(km)
+    real(r8),                           intent(in)    :: POC_remin(km)
+    real(r8),                           intent(in)    :: other_remin(km)
+    real(r8),                           intent(in)    :: denitrif_C_N(km)
+    real(r8),                           intent(inout) :: sed_denitrif(km)
+    real(r8),                           intent(out)   :: denitrif(km)
 
     !-----------------------------------------------------------------------
     !  local variables
@@ -3524,14 +3771,7 @@ contains
         work = ((parm_o2_min + parm_o2_min_delta) - O2_loc(k)) / parm_o2_min_delta
         work = min(max(work, c0), c1)
         denitrif(k) = work * ((DOC_remin(k) + DOCr_remin(k) + POC_remin(k) * (c1 - POCremin_refract) &
-                 - other_remin(k)) / denitrif_C_N  - sed_denitrif(k))
-
-        ! scale down denitrif if computed rate would consume all NO3 in 10 days
-        if (NO3_loc(k) < ((c10*spd)*(denitrif(k)+sed_denitrif(k)))) then
-          work = NO3_loc(k) / ((c10*spd)*(denitrif(k)+sed_denitrif(k)))
-          denitrif(k) = denitrif(k) * work
-          sed_denitrif(k) = sed_denitrif(k) * work
-        end if
+                 - other_remin(k)) / denitrif_C_N(k)  - sed_denitrif(k))
       end do
 
     end associate
@@ -3541,9 +3781,9 @@ contains
   !***********************************************************************
 
   subroutine compute_local_tendencies(km, marbl_tracer_indices, autotroph_derived_terms, &
-       zooplankton_derived_terms, dissolved_organic_matter, nitrif, denitrif, sed_denitrif, &
-       Fe_scavenge, Lig_prod, Lig_loss, P_iron_remin, POC_remin, POP_remin, P_SiO2_remin, &
-       P_CaCO3_remin, P_CaCO3_ALT_CO2_remin, other_remin, PON_remin, tracer_local, &
+       zooplankton_derived_terms, dissolved_organic_matter, nitrif, denitrif, denitrif_C_N, &
+       sed_denitrif, Fe_scavenge, Lig_prod, Lig_loss, P_iron_remin, POC_remin, POP_remin, PON_remin, P_SiO2_remin, &
+       P_CaCO3_remin, P_CaCO3_ALT_CO2_remin, other_remin, tracer_local, &
        o2_consumption_scalef, o2_production, o2_consumption, interior_tendencies)
 
     integer,                              intent(in)    :: km
@@ -3553,6 +3793,7 @@ contains
     type(dissolved_organic_matter_type),  intent(in)    :: dissolved_organic_matter
     real(r8),                             intent(in)    :: nitrif(km)
     real(r8),                             intent(in)    :: denitrif(km)
+    real(r8),                             intent(in)    :: denitrif_C_N(km)
     real(r8),                             intent(in)    :: sed_denitrif(km)
     real(r8),                             intent(in)    :: Fe_scavenge(km)
     real(r8),                             intent(in)    :: Lig_prod(km)
@@ -3560,11 +3801,11 @@ contains
     real(r8),                             intent(in)    :: P_iron_remin(km)
     real(r8),                             intent(in)    :: POC_remin(km)
     real(r8),                             intent(in)    :: POP_remin(km)
+    real(r8),                             intent(in)    :: PON_remin(km)
     real(r8),                             intent(in)    :: P_SiO2_remin(km)
     real(r8),                             intent(in)    :: P_CaCO3_remin(km)
     real(r8),                             intent(in)    :: P_CaCO3_ALT_CO2_remin(km)
     real(r8),                             intent(in)    :: other_remin(km)
-    real(r8),                             intent(in)    :: PON_remin(km)
     real(r8),                             intent(in)    :: tracer_local(marbl_tracer_indices%total_cnt, km)
     real(r8),                             intent(in)    :: o2_consumption_scalef(km)
     real(r8),                             intent(out)   :: o2_production(km)
@@ -3577,12 +3818,15 @@ contains
     integer  :: k, auto_ind, zoo_ind, n
     real(r8) :: auto_sum
     real(r8) :: o2_production_denom
+
+
     !-----------------------------------------------------------------------
 
     associate(                                                            &
          thetaC          => autotroph_derived_terms%thetaC(:,:),          & ! current Chl/C ratio (mg Chl/mmol C)
          QCaCO3          => autotroph_derived_terms%QCaCO3(:,:),          & ! current CaCO3/C ratio (mmol CaCO3/mmol C)
          Qp              => autotroph_derived_terms%Qp(:,:),              & ! current P/C ratio (mmol P/mmol C)
+         Qn              => autotroph_derived_terms%Qn(:,:),              & ! current N/C ratio (mmol N/mmol C)
          Qfe             => autotroph_derived_terms%Qfe(:,:),             & ! current Fe/C ratio (mmol Fe/mmol C)
          Qsi             => autotroph_derived_terms%Qsi(:,:),             & ! current Si/C ratio (mmol Si/mmol C)
          NO3_V           => autotroph_derived_terms%NO3_V(:,:),           & ! nitrate uptake (mmol NO3/m^3/sec)
@@ -3603,8 +3847,11 @@ contains
          auto_graze_doc  => autotroph_derived_terms%auto_graze_doc(:,:),  & ! auto_graze routed to doc (mmol C/m^3/sec)
          CaCO3_form      => autotroph_derived_terms%CaCO3_form(:,:),      & ! prod. of CaCO3 by small phyto (mmol CaCO3/m^3/sec)
          Nfix            => autotroph_derived_terms%Nfix(:,:),            & ! total Nitrogen fixation (mmol N/m^3/sec)
-         Nexcrete        => autotroph_derived_terms%Nexcrete(:,:),        & ! fixed N excretion
-         remaining_P_dip => autotroph_derived_terms%remaining_P_dip(:,:), & ! remaining_P from mort routed to remin
+         Nexcrete        => autotroph_derived_terms%Nexcrete(:,:),        & ! fixed N excretion by diazotrophs
+         remaining_P_dip => autotroph_derived_terms%remaining_P_dip(:,:), & ! remaining_P from grazing mort routed to remin
+         remaining_N_din => autotroph_derived_terms%remaining_N_din(:,:), & ! remaining_N from grazing mort routed to remin
+         remaining_Fe_dfe => autotroph_derived_terms%remaining_Fe_dfe(:,:), & ! remaining_Fe from grazing mort routed to remin
+         remaining_Fe_pfe => autotroph_derived_terms%remaining_Fe_pfe(:,:), & ! remaining_Fe from phyto mort routed to particulate sinking
 
          x_graze_zoo     => zooplankton_derived_terms%x_graze_zoo(:,:),   & ! {auto, zoo}_graze routed to zoo (mmol C/m^3/sec)
          zoo_graze       => zooplankton_derived_terms%zoo_graze(:,:),     & ! zooplankton losses due to grazing (mmol C/m^3/sec)
@@ -3621,6 +3868,7 @@ contains
          DON_prod        => dissolved_organic_matter%DON_prod(:),       & ! production of DON
          DON_remin       => dissolved_organic_matter%DON_remin(:),      & ! remineralization of DON
          DONr_remin      => dissolved_organic_matter%DONr_remin(:),     & ! remineralization of DONr
+         DON_loss_N_bal  => dissolved_organic_matter%DON_loss_N_bal(:), & ! DON loss, due to N budget balancing
          DOP_prod        => dissolved_organic_matter%DOP_prod(:),       & ! production of DOP
          DOP_remin       => dissolved_organic_matter%DOP_remin(:),      & ! remineralization of DOP
          DOPr_remin      => dissolved_organic_matter%DOPr_remin(:),     & ! remineralization of DOPr
@@ -3653,10 +3901,10 @@ contains
 
         interior_tendencies(no3_ind,k) = nitrif(k) - denitrif(k) - sed_denitrif(k) - sum(NO3_V(:,k))
 
-        interior_tendencies(nh4_ind,k) = -sum(NH4_V(:,k)) - nitrif(k) + DON_remin(k) + DONr_remin(k)  &
-                                       + Q * (sum(zoo_loss_dic(:,k)) + sum(zoo_graze_dic(:,k)) + sum(auto_loss_dic(:,k)) &
-                                              + sum(auto_graze_dic(:,k)) + DOC_prod(k)*(c1 - f_toDON)) &
-                                       + PON_remin(k) * (c1 - PONremin_refract)
+
+        interior_tendencies(nh4_ind,k) = DON_remin(k) + DONr_remin(k) - sum(NH4_V(:,k)) - nitrif(k) &
+                                       + ((c1 - PONremin_refract) * PON_remin(k)) + sum(remaining_N_din(:,k)) &
+                                       + Q * (sum(zoo_loss_dic(:,k)) + sum(zoo_graze_dic(:,k)))
 
         do auto_ind = 1, autotroph_cnt
           if (autotroph_settings(auto_ind)%Nfixer) then
@@ -3665,19 +3913,21 @@ contains
         end do
 
         !-----------------------------------------------------------------------
+        !  phosphate
+        !-----------------------------------------------------------------------
+
+        interior_tendencies(po4_ind,k) = DOP_remin(k) + DOPr_remin(k) - sum(PO4_V(:,k)) &
+                   + (c1 - POPremin_refract) * POP_remin(k) + sum(remaining_P_dip(:,k)) &
+                   + Qp_zoo * (sum(zoo_loss_dic(:,k)) + sum(zoo_graze_dic(:,k)))
+
+        !-----------------------------------------------------------------------
         !  dissolved iron
         !-----------------------------------------------------------------------
 
         interior_tendencies(fe_ind,k) = P_iron_remin(k) - sum(photoFe(:,k)) - Fe_scavenge(k) &
-                                      + Qfe_zoo * (sum(zoo_loss_dic(:,k)) + sum(zoo_loss_doc(:,k)) &
-                                                   + sum(zoo_graze_dic(:,k)) + sum(zoo_graze_doc(:,k)))
-
-        do auto_ind = 1, autotroph_cnt
-          interior_tendencies(fe_ind,k) = interior_tendencies(fe_ind,k) &
-                                        + (Qfe(auto_ind,k) * (auto_loss_dic(auto_ind,k) + auto_graze_dic(auto_ind,k))) &
-                                        + auto_graze_zootot(auto_ind,k) * (Qfe(auto_ind,k) - Qfe_zoo) &
-                                        + (Qfe(auto_ind,k) * (auto_loss_doc(auto_ind,k) + auto_graze_doc(auto_ind,k)))
-        end do
+                    + sum(remaining_Fe_dfe(:,k)) &
+                    + Qfe_zoo * (sum(zoo_loss_dic(:,k)) + sum(zoo_loss_doc(:,k)) &
+                                 + sum(zoo_graze_dic(:,k)) + sum(zoo_graze_doc(:,k)))
 
         !-----------------------------------------------------------------------
         !  iron binding ligand
@@ -3694,19 +3944,11 @@ contains
         do auto_ind = 1, autotroph_cnt
           if (marbl_tracer_indices%auto_inds(auto_ind)%Si_ind > 0) then
             interior_tendencies(sio3_ind,k) = interior_tendencies(sio3_ind,k) - photoSi(auto_ind,k) &
-                                            + Qsi(auto_ind,k) * (f_graze_si_remin * auto_graze(auto_ind,k) &
-                                                                 + (c1 - autotroph_settings(auto_ind)%loss_poc) &
-                                                                   * auto_loss(auto_ind,k))
+                                + Qsi(auto_ind,k) * (f_graze_si_remin * auto_graze(auto_ind,k) &
+                                + (c1 - autotroph_settings(auto_ind)%loss_poc) * auto_loss(auto_ind,k))
           end if
         end do
 
-        !-----------------------------------------------------------------------
-        !  phosphate
-        !-----------------------------------------------------------------------
-
-        interior_tendencies(po4_ind,k) = DOP_remin(k) + DOPr_remin(k) - sum(PO4_V(:,k)) &
-                                       + (c1 - POPremin_refract) * POP_remin(k) + sum(remaining_P_dip(:,k)) &
-                                       + Qp_zoo * (sum(zoo_loss_dic(:,k)) + sum(zoo_graze_dic(:,k)))
 
         !-----------------------------------------------------------------------
         !  zoo Carbon
@@ -3719,6 +3961,7 @@ contains
         !-----------------------------------------------------------------------
         !  autotroph Carbon
         !  autotroph Phosphorus
+        !  autotroph Nitrogen
         !  autotroph Chlorophyll
         !  autotroph Fe
         !  autotroph Si
@@ -3736,15 +3979,28 @@ contains
             interior_tendencies(n,k) = PO4_V(auto_ind,k) + DOP_V(auto_ind,k) - Qp(auto_ind,k) * auto_sum
           end if
 
+          n = marbl_tracer_indices%auto_inds(auto_ind)%N_ind
+          if (n > 0) then
+            interior_tendencies(n,k) = NO3_V(auto_ind,k) + NH4_V(auto_ind,k) - Qn(auto_ind,k) * auto_sum
+          end if
+
+          if (autotroph_settings(auto_ind)%Nfixer) then
+            n = marbl_tracer_indices%auto_inds(auto_ind)%N_ind
+            if (n > 0) then
+              interior_tendencies(n,k) = NO3_V(auto_ind,k) + NH4_V(auto_ind,k) + Nfix(auto_ind,k) - &
+              Nexcrete(auto_ind,k) - (Qn(auto_ind,k) * auto_sum)
+            end if
+          end if
+
           n = marbl_tracer_indices%auto_inds(auto_ind)%Chl_ind
           interior_tendencies(n,k) = photoacc(auto_ind,k) - thetaC(auto_ind,k) * auto_sum
 
           n = marbl_tracer_indices%auto_inds(auto_ind)%Fe_ind
-          interior_tendencies(n,k) =  photoFe(auto_ind,k) - Qfe(auto_ind,k) * auto_sum
+          interior_tendencies(n,k) = photoFe(auto_ind,k) - Qfe(auto_ind,k) * auto_sum
 
           n = marbl_tracer_indices%auto_inds(auto_ind)%Si_ind
           if (n > 0) then
-            interior_tendencies(n,k) =  photoSi(auto_ind,k) - Qsi(auto_ind,k) * auto_sum
+            interior_tendencies(n,k) = photoSi(auto_ind,k) - Qsi(auto_ind,k) * auto_sum
           end if
 
           n = marbl_tracer_indices%auto_inds(auto_ind)%CaCO3_ind
@@ -3762,7 +4018,8 @@ contains
 
         interior_tendencies(docr_ind,k) = DOC_prod(k) * DOCprod_refract - DOCr_remin(k) + (POC_remin(k) * POCremin_refract)
 
-        interior_tendencies(don_ind,k) = (DON_prod(k) * (c1 - DONprod_refract)) - DON_remin(k)
+        interior_tendencies(don_ind,k) = (DON_prod(k) * (c1 - DONprod_refract)) - DON_remin(k) &
+                                       - DON_loss_N_bal(k)
 
         interior_tendencies(donr_ind,k) = (DON_prod(k) * DONprod_refract) - DONr_remin(k) &
                                         + (PON_remin(k) * PONremin_refract)
@@ -3841,7 +4098,7 @@ contains
         o2_consumption(k) = (O2_loc(k) - parm_o2_min) / parm_o2_min_delta
         o2_consumption(k) = min(max(o2_consumption(k), c0), c1)
         o2_consumption(k) = o2_consumption(k) * ((POC_remin(k) * (c1 - POCremin_refract) + DOC_remin(k) + DOCr_remin(k) &
-                                                  - (sed_denitrif(k) * denitrif_C_N) - other_remin(k) &
+                                                  - (sed_denitrif(k) * denitrif_C_N(k)) - other_remin(k) &
                                                   + sum(zoo_loss_dic(:,k)) + sum(zoo_graze_dic(:,k))  &
                                                   + sum(auto_loss_dic(:,k)) + sum(auto_graze_dic(:,k))) &
                                                  / parm_Remin_D_C_O2 + (c2 * nitrif(k)))
@@ -3856,13 +4113,13 @@ contains
 
   !***********************************************************************
 
-  subroutine update_particulate_terms_from_prior_level(k, POC, POP, P_CaCO3, &
+  subroutine update_particulate_terms_from_prior_level(k, POC, POP, PON, P_CaCO3, &
        P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron, QA_dust_def)
 
     use marbl_interior_tendency_share_mod, only : marbl_interior_tendency_share_update_particle_flux_from_above
 
     integer (int_kind)                 , intent(in)    :: k ! vertical model level
-    type(column_sinking_particle_type) , intent(inout) :: POC, POP, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron
+    type(column_sinking_particle_type) , intent(inout) :: POC, POP, PON, P_CaCO3, P_CaCO3_ALT_CO2, P_SiO2, dust, P_iron
     real(r8)                           , intent(inout) :: QA_dust_def(:) !(km)
 
     ! NOTE(bja, 2015-04) assume that k == ksurf condition was handled by
@@ -3879,6 +4136,7 @@ contains
       call marbl_interior_tendency_share_update_particle_flux_from_above(k, dust)
       call marbl_interior_tendency_share_update_particle_flux_from_above(k, POC)
       call marbl_interior_tendency_share_update_particle_flux_from_above(k, POP)
+      call marbl_interior_tendency_share_update_particle_flux_from_above(k, PON)
       call marbl_interior_tendency_share_update_particle_flux_from_above(k, P_iron)
       QA_dust_def(k) = QA_dust_def(k-1)
     end if

@@ -1119,6 +1119,15 @@ DONr_remin :
    frequency : low
    operator : average
    diag_mode : full
+DON_loss_N_bal :
+   dependencies :
+      base_bio_on : .true.
+   longname : DON loss, due to N budget balancing
+   units : mmol/m^3/s
+   vertical_grid : layer_avg
+   frequency : never
+   operator : average
+   diag_mode : full
 DOP_prod :
    dependencies :
       base_bio_on : .true.
@@ -1236,6 +1245,24 @@ FESEDFLUX :
    frequency : never
    operator : average
    diag_mode : full
+FEREDSEDFLUX :
+   dependencies :
+      base_bio_on : .true.
+   longname : Iron Red Sediment Flux
+   units : nmol/cm^2/s
+   vertical_grid : layer_avg
+   frequency : never
+   operator : average
+   diag_mode : full
+FEVENTFLUX :
+   dependencies :
+      base_bio_on : .true.
+   longname : Iron Vent Flux
+   units : nmol/cm^2/s
+   vertical_grid : layer_avg
+   frequency : never
+   operator : average
+   diag_mode : full
 
 # Particulate 2D diags
 POC_FLUX_((particulate_flux_ref_depth_str)) :
@@ -1251,6 +1278,15 @@ POP_FLUX_((particulate_flux_ref_depth_str)) :
    dependencies :
       base_bio_on : .true.
    longname : POP Flux at ((particulate_flux_ref_depth_str))
+   units : mmol/m^3 cm/s
+   vertical_grid : none
+   frequency : medium
+   operator : average
+   diag_mode : full
+PON_FLUX_((particulate_flux_ref_depth_str)) :
+   dependencies :
+      base_bio_on : .true.
+   longname : PON Flux at ((particulate_flux_ref_depth_str))
    units : mmol/m^3 cm/s
    vertical_grid : none
    frequency : medium
@@ -1473,6 +1509,24 @@ POP_REMIN_PO4 :
    units : mmol/m^3/s
    vertical_grid : layer_avg
    frequency : low
+   operator : average
+   diag_mode : full
+PON_FLUX_IN :
+   dependencies :
+      base_bio_on : .true.
+   longname : PON Flux into Cell
+   units : mmol/m^3 cm/s
+   vertical_grid : layer_avg
+   frequency : medium
+   operator : average
+   diag_mode : full
+PON_PROD :
+   dependencies :
+      base_bio_on : .true.
+   longname : PON Production
+   units : mmol/m^3/s
+   vertical_grid : layer_avg
+   frequency : medium
    operator : average
    diag_mode : full
 PON_REMIN_DONr :
@@ -2247,12 +2301,25 @@ graze_((autotroph_sname))_((zooplankton_sname))_zint_100m :
    operator : average
    diag_mode : full
 ((autotroph_sname))_Qp :
-   dependencies: # NOTE: POP treats this as a dependency, though MARBL defines
-                 #       these diagnostics independent of lvariable_PtoC; my
-                 #       thought is that we don't need these diagnostics with
-                 #       fixed P:C so I'd like to update the fortran as well
+   dependencies : # NOTE: POP treats this as a dependency, though MARBL defines
+                  #       these diagnostics independent of lvariable_PtoC; my
+                  #       thought is that we don't need these diagnostics with
+                  #       fixed P:C so I'd like to update the fortran as well
       lvariable_PtoC : .true.
    longname : ((autotroph_lname)) P:C ratio
+   units : 1
+   vertical_grid : layer_avg
+   truncate : true
+   frequency : medium
+   operator : average
+   diag_mode : full
+((autotroph_sname))_Qn :
+   dependencies : # NOTE: POP treats this as a dependency, though MARBL defines
+                  #       these diagnostics independent of lvariable_NtoC; my
+                  #       thought is that we don't need these diagnostics with
+                  #       fixed N:C so I'd like to update the fortran as well
+      lvariable_NtoC : .true.
+   longname : ((autotroph_lname)) N:C ratio
    units : 1
    vertical_grid : layer_avg
    truncate : true
