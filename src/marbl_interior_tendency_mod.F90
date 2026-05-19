@@ -1122,16 +1122,17 @@ contains
         call marbl_status_log%log_warning_trace('marbl_co2calc_interior() with dic', subname)
       end if
 
+      ph_prev_col = ph
+
       do k=1,dkm
-        ph_prev_col(k) = pH(k)
         if (ph_prev_alt_co2_col(k) /= c0) then
           if (domain%delta_z(k) > 1._r8 * unit_system%cm2len) then
-            ph_lower_bound(k) = ph_prev_col(k) - del_ph
-            ph_upper_bound(k) = ph_prev_col(k) + del_ph
+            ph_lower_bound(k) = ph_prev_alt_co2_col(k) - del_ph
+            ph_upper_bound(k) = ph_prev_alt_co2_col(k) + del_ph
           else
             ! Double initial bracket width for very thin layers
-            ph_lower_bound(k) = ph_prev_col(k) - 2._r8 * del_ph
-            ph_upper_bound(k) = ph_prev_col(k) + 2._r8 * del_ph
+            ph_lower_bound(k) = ph_prev_alt_co2_col(k) - 2._r8 * del_ph
+            ph_upper_bound(k) = ph_prev_alt_co2_col(k) + 2._r8 * del_ph
           end if
         else
           ph_lower_bound(k) = phlo_3d_init
