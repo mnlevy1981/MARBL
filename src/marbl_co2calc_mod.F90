@@ -733,9 +733,8 @@ contains
 
     !---------------------------------------------------------------------------
     !   If DIC and TA are known then either a root finding or iterative
-    !   method must be used to calculate htotal. In this case we use
-    !   the Newton-Raphson "safe" method taken from "Numerical Recipes"
-    !   (function "rtsafe.f" with error trapping removed).
+    !   method must be used to calculate htotal. We use a safe Newton-Raphson
+    !   method loosely based on rtsafe.f from "Numerical Recipes."
     !
     !   As currently set, this procedure iterates about 12 times. The
     !   x1 and x2 values set below will accomodate ANY oceanographic
@@ -766,8 +765,9 @@ contains
                   marbl_status_log)
 
     !---------------------------------------------------------------------------
-    !   Vectorized version of drtsafe, which was a modified version of
-    !      Numerical Recipes algorithm.
+    !   Vectorized version of safe Newton-Raphson method to find value of htotal
+    !   that is a root of total_alkalinity() subroutine (subroutine returns fn(:)
+    !   containing values close to zero).
     !   Keith Lindsay, Oct 1999
     !
     !   Algorithm comment :
