@@ -539,21 +539,21 @@ general_parms :
       subcategory : 5. general parameters (scavenging)
       units : cm^2/ng s/yr
       datatype : real
-      default_value : 24.0
+      default_value : 10.0
    parm_Lig_scavenge_rate0 :
       dependencies : base_bio_on
       longname : Scavenging base rate for bound ligand
       subcategory : 5. general parameters (scavenging)
       units : cm^2/ng s/yr
       datatype : real
-      default_value : 0.015
+      default_value : 0.02
    parm_FeLig_scavenge_rate0 :
       dependencies : base_bio_on
       longname : Scavenging base rate for bound iron
       subcategory : 5. general parameters (scavenging)
       units : cm^2/ng s/yr
       datatype : real
-      default_value : 1.3
+      default_value : 2
    parm_Lig_degrade_rate0 :
       dependencies : base_bio_on
       longname : Fe-binding ligand bacterial degradation base rate coefficient
@@ -676,14 +676,14 @@ general_parms :
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 500
+      default_value : 0
    dust_per_unit_feventflux :
       dependencies : base_bio_on
       longname : Scale factor for converting feventflux to dust%prod
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 25
+      default_value : 0
    parm_scalelen_z :
       dependencies : base_bio_on
       longname : Depths of prescribed scale length values
@@ -793,7 +793,7 @@ general_parms :
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 0.5
+      default_value : 0.92
 
 ################################################################################
 #                    Category 1.5: General Parameters (cont)                   #
@@ -983,7 +983,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "sp" : 0.03e-3
                ((autotroph_sname)) == "diat" : 0.05e-3
                ((autotroph_sname)) == "diaz" : 0.045e-3
-               ((autotroph_sname)) == "cocco" : 0.032e-3
+               ((autotroph_sname)) == "cocco" : 0.031e-3
          kCO2 :
             longname : CO2 uptake half-sat constant
             subcategory : 10. autotrophs
@@ -1002,10 +1002,10 @@ PFT_derived_types :
             datatype : real
             default_value :
                default : 1e34
-               ((autotroph_sname)) == "sp" : 0.01
+               ((autotroph_sname)) == "sp" : 0.02
                ((autotroph_sname)) == "diat" : 0.05
                ((autotroph_sname)) == "diaz" : 0.015
-               ((autotroph_sname)) == "cocco" : 0.006
+               ((autotroph_sname)) == "cocco" : 0.03
          kDOP :
             longname : DOP uptake half-sat constant
             subcategory : 10. autotrophs
@@ -1027,7 +1027,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "sp" : 0.2
                ((autotroph_sname)) == "diat" : 0.4
                ((autotroph_sname)) == "diaz" : 2
-               ((autotroph_sname)) == "cocco" : 0.41
+               ((autotroph_sname)) == "cocco" : 0.3
          kNH4 :
             longname : NH4 uptake half-sat constant
             subcategory : 10. autotrophs
@@ -1036,9 +1036,9 @@ PFT_derived_types :
             default_value :
                default : 1e34
                ((autotroph_sname)) == "sp" : 0.01
-               ((autotroph_sname)) == "diat" : 0.05
+               ((autotroph_sname)) == "diat" : 0.3
                ((autotroph_sname)) == "diaz" : 0.2
-               ((autotroph_sname)) == "cocco" : 0.01
+               ((autotroph_sname)) == "cocco" : 0.2
          kSiO3 :
             longname : SiO3 uptake half-sat constant
             subcategory : 10. autotrophs
@@ -1187,7 +1187,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "sp" : 0.35
                ((autotroph_sname)) == "diat" : 0.39
                ((autotroph_sname)) == "diaz" : 0.31
-               ((autotroph_sname)) == "cocco" : 0.31
+               ((autotroph_sname)) == "cocco" : 0.33
          PCref_per_day :
             longname : Maximum C-spec growth rate at Tref
             subcategory : 10. autotrophs
@@ -1206,10 +1206,10 @@ PFT_derived_types :
             datatype : real
             default_value :
                default : 1e34
-               ((autotroph_sname)) == "sp" : 2.5
-               ((autotroph_sname)) == "diat" : 4
-               ((autotroph_sname)) == "diaz" : 2.5
-               ((autotroph_sname)) == "cocco" : 3.8
+               ((autotroph_sname)) == "sp" : 2
+               ((autotroph_sname)) == "diat" : 3.2
+               ((autotroph_sname)) == "diaz" : 2.2
+               ((autotroph_sname)) == "cocco" : 2.0
          loss_thres :
             longname : concentration where losses go to zero
             subcategory : 10. autotrophs
@@ -1253,7 +1253,7 @@ PFT_derived_types :
                ((autotroph_sname)) == "sp" : 0.1
                ((autotroph_sname)) == "diat" : 0.1
                ((autotroph_sname)) == "diaz" : 0.1
-               ((autotroph_sname)) == "cocco" : 0.1
+               ((autotroph_sname)) == "cocco" : 0.13
          mort2_per_day :
             longname : Quadratic mortality rate
             subcategory : 10. autotrophs
@@ -1455,6 +1455,7 @@ PFT_derived_types :
             default_value :
                default : 1
                ((grazer_sname)) == "sp_microzoo" : 2
+               ((grazer_sname)) == "cocco_mesozoo" : 2
          z_umax_0_per_day :
             longname : Maximum zooplankton growth rate at Tref
             subcategory : 12. grazing
@@ -1462,13 +1463,13 @@ PFT_derived_types :
             datatype : real
             default_value :
                default : 1e34
-               ((grazer_sname)) == "sp_microzoo" : 4.1
-               ((grazer_sname)) == "diat_mesozoo" : 0.9
+               ((grazer_sname)) == "sp_microzoo" : 3.6
+               ((grazer_sname)) == "diat_mesozoo" : 1.05
                ((grazer_sname)) == "diaz_microzoo" : 1
                ((grazer_sname)) == "diaz_mesozoo" : 0.5
-               ((grazer_sname)) == "cocco_microzoo" : 1.7
-               ((grazer_sname)) == "cocco_mesozoo" : 0.015
-               ((grazer_sname)) == "microzoo_mesozoo" : 0.2
+               ((grazer_sname)) == "cocco_microzoo" : 1.6
+               ((grazer_sname)) == "cocco_mesozoo" : 0.7
+               ((grazer_sname)) == "microzoo_mesozoo" : 0.18
                ((grazer_sname)) == "null" : 0
          z_grz :
             longname : Grazing coefficient
@@ -1477,12 +1478,12 @@ PFT_derived_types :
             datatype : real
             default_value :
                default : 1e34
-               ((grazer_sname)) == "sp_microzoo" : 1.4
-               ((grazer_sname)) == "diat_mesozoo" : 1
+               ((grazer_sname)) == "sp_microzoo" : 1.35
+               ((grazer_sname)) == "diat_mesozoo" : 0.8
                ((grazer_sname)) == "diaz_microzoo" : 1.2
                ((grazer_sname)) == "diaz_mesozoo" : 1.2
-               ((grazer_sname)) == "cocco_microzoo" : 1.5
-               ((grazer_sname)) == "cocco_mesozoo" : 1.4
+               ((grazer_sname)) == "cocco_microzoo" : 2.2
+               ((grazer_sname)) == "cocco_mesozoo" : 2.9
                ((grazer_sname)) == "microzoo_mesozoo" : 1.3
                ((grazer_sname)) == "null" : 0
          graze_zoo :
@@ -1494,7 +1495,7 @@ PFT_derived_types :
                default : 1e34
                ((grazer_sname)) == "sp_microzoo" : 0.35
                ((grazer_sname)) == "diat_mesozoo" : 0.25
-               ((grazer_sname)) == "diaz_microzoo" : 0.35
+               ((grazer_sname)) == "diaz_microzoo" : 0.3
                ((grazer_sname)) == "diaz_mesozoo" : 0.25
                ((grazer_sname)) == "cocco_microzoo" : 0.25
                ((grazer_sname)) == "cocco_mesozoo" : 0.25
@@ -1508,11 +1509,11 @@ PFT_derived_types :
             default_value :
                default : 1e34
                ((grazer_sname)) == "sp_microzoo" : 0.01
-               ((grazer_sname)) == "diat_mesozoo" : 0.28
+               ((grazer_sname)) == "diat_mesozoo" : 0.25
                ((grazer_sname)) == "diaz_microzoo" : 0.01
-               ((grazer_sname)) == "diaz_mesozoo" : 0.18
+               ((grazer_sname)) == "diaz_mesozoo" : 0.15
                ((grazer_sname)) == "cocco_microzoo" : 0.18
-               ((grazer_sname)) == "cocco_mesozoo" : 0.18
+               ((grazer_sname)) == "cocco_mesozoo" : 0.12
                ((grazer_sname)) == "microzoo_mesozoo" : 0.28
                ((grazer_sname)) == "null" : 0
          graze_doc :
@@ -1538,8 +1539,8 @@ PFT_derived_types :
             default_value :
                default : 1e34
                ((grazer_sname)) == "sp_microzoo" : 0.17
-               ((grazer_sname)) == "diat_mesozoo" : 0.4
-               ((grazer_sname)) == "diaz_microzoo" : 0.17
+               ((grazer_sname)) == "diat_mesozoo" : 0.25
+               ((grazer_sname)) == "diaz_microzoo" : 0.1
                ((grazer_sname)) == "diaz_mesozoo" : 0.4
                ((grazer_sname)) == "cocco_microzoo" : 0.27
                ((grazer_sname)) == "cocco_mesozoo" : 0.27

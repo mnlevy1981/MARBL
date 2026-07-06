@@ -174,7 +174,7 @@
             "alphaPI_per_day": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 0.31,
+                  "((autotroph_sname)) == \"cocco\"": 0.33,
                   "((autotroph_sname)) == \"diat\"": 0.39,
                   "((autotroph_sname)) == \"diaz\"": 0.31,
                   "((autotroph_sname)) == \"sp\"": 0.35,
@@ -324,7 +324,7 @@
             "kFe": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 3.2e-05,
+                  "((autotroph_sname)) == \"cocco\"": 3.1e-05,
                   "((autotroph_sname)) == \"diat\"": 5e-05,
                   "((autotroph_sname)) == \"diaz\"": 4.5e-05,
                   "((autotroph_sname)) == \"sp\"": 3e-05,
@@ -337,8 +337,8 @@
             "kNH4": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 0.01,
-                  "((autotroph_sname)) == \"diat\"": 0.05,
+                  "((autotroph_sname)) == \"cocco\"": 0.2,
+                  "((autotroph_sname)) == \"diat\"": 0.3,
                   "((autotroph_sname)) == \"diaz\"": 0.2,
                   "((autotroph_sname)) == \"sp\"": 0.01,
                   "default": "1e34"
@@ -350,7 +350,7 @@
             "kNO3": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 0.41,
+                  "((autotroph_sname)) == \"cocco\"": 0.3,
                   "((autotroph_sname)) == \"diat\"": 0.4,
                   "((autotroph_sname)) == \"diaz\"": 2,
                   "((autotroph_sname)) == \"sp\"": 0.2,
@@ -363,10 +363,10 @@
             "kPO4": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 0.006,
+                  "((autotroph_sname)) == \"cocco\"": 0.03,
                   "((autotroph_sname)) == \"diat\"": 0.05,
                   "((autotroph_sname)) == \"diaz\"": 0.015,
-                  "((autotroph_sname)) == \"sp\"": 0.01,
+                  "((autotroph_sname)) == \"sp\"": 0.02,
                   "default": "1e34"
                },
                "longname": "PO4 uptake half-sat constant",
@@ -454,7 +454,7 @@
             "mort_per_day": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 0.1,
+                  "((autotroph_sname)) == \"cocco\"": 0.13,
                   "((autotroph_sname)) == \"diat\"": 0.1,
                   "((autotroph_sname)) == \"diaz\"": 0.1,
                   "((autotroph_sname)) == \"sp\"": 0.1,
@@ -521,10 +521,10 @@
             "thetaN_max": {
                "datatype": "real",
                "default_value": {
-                  "((autotroph_sname)) == \"cocco\"": 3.8,
-                  "((autotroph_sname)) == \"diat\"": 4,
-                  "((autotroph_sname)) == \"diaz\"": 2.5,
-                  "((autotroph_sname)) == \"sp\"": 2.5,
+                  "((autotroph_sname)) == \"cocco\"": 2.0,
+                  "((autotroph_sname)) == \"diat\"": 3.2,
+                  "((autotroph_sname)) == \"diaz\"": 2.2,
+                  "((autotroph_sname)) == \"sp\"": 2,
                   "default": "1e34"
                },
                "longname": "Maximum thetaN (Chl / N)",
@@ -575,9 +575,9 @@
                "default_value": {
                   "((grazer_sname)) == \"cocco_mesozoo\"": 0.27,
                   "((grazer_sname)) == \"cocco_microzoo\"": 0.27,
-                  "((grazer_sname)) == \"diat_mesozoo\"": 0.4,
+                  "((grazer_sname)) == \"diat_mesozoo\"": 0.25,
                   "((grazer_sname)) == \"diaz_mesozoo\"": 0.4,
-                  "((grazer_sname)) == \"diaz_microzoo\"": 0.17,
+                  "((grazer_sname)) == \"diaz_microzoo\"": 0.1,
                   "((grazer_sname)) == \"microzoo_mesozoo\"": 0.27,
                   "((grazer_sname)) == \"null\"": 0,
                   "((grazer_sname)) == \"sp_microzoo\"": 0.17,
@@ -607,10 +607,10 @@
             "graze_poc": {
                "datatype": "real",
                "default_value": {
-                  "((grazer_sname)) == \"cocco_mesozoo\"": 0.18,
+                  "((grazer_sname)) == \"cocco_mesozoo\"": 0.12,
                   "((grazer_sname)) == \"cocco_microzoo\"": 0.18,
-                  "((grazer_sname)) == \"diat_mesozoo\"": 0.28,
-                  "((grazer_sname)) == \"diaz_mesozoo\"": 0.18,
+                  "((grazer_sname)) == \"diat_mesozoo\"": 0.25,
+                  "((grazer_sname)) == \"diaz_mesozoo\"": 0.15,
                   "((grazer_sname)) == \"diaz_microzoo\"": 0.01,
                   "((grazer_sname)) == \"microzoo_mesozoo\"": 0.28,
                   "((grazer_sname)) == \"null\"": 0,
@@ -628,7 +628,7 @@
                   "((grazer_sname)) == \"cocco_microzoo\"": 0.25,
                   "((grazer_sname)) == \"diat_mesozoo\"": 0.25,
                   "((grazer_sname)) == \"diaz_mesozoo\"": 0.25,
-                  "((grazer_sname)) == \"diaz_microzoo\"": 0.35,
+                  "((grazer_sname)) == \"diaz_microzoo\"": 0.3,
                   "((grazer_sname)) == \"microzoo_mesozoo\"": 0.25,
                   "((grazer_sname)) == \"null\"": 0,
                   "((grazer_sname)) == \"sp_microzoo\"": 0.35,
@@ -642,6 +642,7 @@
                "_comment": "1 => Michaelis-Menten, 2 => Sigmoidal",
                "datatype": "integer",
                "default_value": {
+                  "((grazer_sname)) == \"cocco_mesozoo\"": 2,
                   "((grazer_sname)) == \"sp_microzoo\"": 2,
                   "default": 1
                },
@@ -686,14 +687,14 @@
             "z_grz": {
                "datatype": "real",
                "default_value": {
-                  "((grazer_sname)) == \"cocco_mesozoo\"": 1.4,
-                  "((grazer_sname)) == \"cocco_microzoo\"": 1.5,
-                  "((grazer_sname)) == \"diat_mesozoo\"": 1,
+                  "((grazer_sname)) == \"cocco_mesozoo\"": 2.9,
+                  "((grazer_sname)) == \"cocco_microzoo\"": 2.2,
+                  "((grazer_sname)) == \"diat_mesozoo\"": 0.8,
                   "((grazer_sname)) == \"diaz_mesozoo\"": 1.2,
                   "((grazer_sname)) == \"diaz_microzoo\"": 1.2,
                   "((grazer_sname)) == \"microzoo_mesozoo\"": 1.3,
                   "((grazer_sname)) == \"null\"": 0,
-                  "((grazer_sname)) == \"sp_microzoo\"": 1.4,
+                  "((grazer_sname)) == \"sp_microzoo\"": 1.35,
                   "default": "1e34"
                },
                "longname": "Grazing coefficient",
@@ -703,14 +704,14 @@
             "z_umax_0_per_day": {
                "datatype": "real",
                "default_value": {
-                  "((grazer_sname)) == \"cocco_mesozoo\"": 0.015,
-                  "((grazer_sname)) == \"cocco_microzoo\"": 1.7,
-                  "((grazer_sname)) == \"diat_mesozoo\"": 0.9,
+                  "((grazer_sname)) == \"cocco_mesozoo\"": 0.7,
+                  "((grazer_sname)) == \"cocco_microzoo\"": 1.6,
+                  "((grazer_sname)) == \"diat_mesozoo\"": 1.05,
                   "((grazer_sname)) == \"diaz_mesozoo\"": 0.5,
                   "((grazer_sname)) == \"diaz_microzoo\"": 1,
-                  "((grazer_sname)) == \"microzoo_mesozoo\"": 0.2,
+                  "((grazer_sname)) == \"microzoo_mesozoo\"": 0.18,
                   "((grazer_sname)) == \"null\"": 0,
-                  "((grazer_sname)) == \"sp_microzoo\"": 4.1,
+                  "((grazer_sname)) == \"sp_microzoo\"": 3.6,
                   "default": "1e34"
                },
                "longname": "Maximum zooplankton growth rate at Tref",
@@ -1264,7 +1265,7 @@
       },
       "dust_per_unit_fesedflux": {
          "datatype": "real",
-         "default_value": 500,
+         "default_value": 0,
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting fesedflux to dust%prod",
          "subcategory": "5. general parameters",
@@ -1272,7 +1273,7 @@
       },
       "dust_per_unit_feventflux": {
          "datatype": "real",
-         "default_value": 25,
+         "default_value": 0,
          "dependencies": "base_bio_on",
          "longname": "Scale factor for converting feventflux to dust%prod",
          "subcategory": "5. general parameters",
@@ -1280,7 +1281,7 @@
       },
       "f_graze_CaCO3_remin": {
          "datatype": "real",
-         "default_value": 0.5,
+         "default_value": 0.92,
          "dependencies": "base_bio_on",
          "longname": "Fraction of spCaCO3 grazing which is remineralized in zooplankton guts",
          "subcategory": "5. general parameters",
@@ -1466,7 +1467,7 @@
       },
       "parm_FeLig_scavenge_rate0": {
          "datatype": "real",
-         "default_value": 1.3,
+         "default_value": 2,
          "dependencies": "base_bio_on",
          "longname": "Scavenging base rate for bound iron",
          "subcategory": "5. general parameters (scavenging)",
@@ -1490,7 +1491,7 @@
       },
       "parm_Fe_scavenge_rate0": {
          "datatype": "real",
-         "default_value": 24.0,
+         "default_value": 10.0,
          "dependencies": "base_bio_on",
          "longname": "Scavenging base rate for Fe",
          "subcategory": "5. general parameters (scavenging)",
@@ -1506,7 +1507,7 @@
       },
       "parm_Lig_scavenge_rate0": {
          "datatype": "real",
-         "default_value": 0.015,
+         "default_value": 0.02,
          "dependencies": "base_bio_on",
          "longname": "Scavenging base rate for bound ligand",
          "subcategory": "5. general parameters (scavenging)",
