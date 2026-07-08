@@ -377,7 +377,7 @@
                "datatype": "real",
                "default_value": {
                   "((autotroph_sname)) == \"cocco\"": 0,
-                  "((autotroph_sname)) == \"diat\"": 1.6,
+                  "((autotroph_sname)) == \"diat\"": 1.3,
                   "((autotroph_sname)) == \"diaz\"": 0,
                   "((autotroph_sname)) == \"sp\"": 0,
                   "default": "1e34"
@@ -455,7 +455,7 @@
                "datatype": "real",
                "default_value": {
                   "((autotroph_sname)) == \"cocco\"": 0.13,
-                  "((autotroph_sname)) == \"diat\"": 0.1,
+                  "((autotroph_sname)) == \"diat\"": 0.16,
                   "((autotroph_sname)) == \"diaz\"": 0.1,
                   "((autotroph_sname)) == \"sp\"": 0.1,
                   "default": "1e34"
@@ -688,10 +688,10 @@
                "datatype": "real",
                "default_value": {
                   "((grazer_sname)) == \"cocco_mesozoo\"": 2.9,
-                  "((grazer_sname)) == \"cocco_microzoo\"": 2.2,
+                  "((grazer_sname)) == \"cocco_microzoo\"": 2.25,
                   "((grazer_sname)) == \"diat_mesozoo\"": 0.8,
-                  "((grazer_sname)) == \"diaz_mesozoo\"": 1.2,
-                  "((grazer_sname)) == \"diaz_microzoo\"": 1.2,
+                  "((grazer_sname)) == \"diaz_mesozoo\"": 1.3,
+                  "((grazer_sname)) == \"diaz_microzoo\"": 1.3,
                   "((grazer_sname)) == \"microzoo_mesozoo\"": 1.3,
                   "((grazer_sname)) == \"null\"": 0,
                   "((grazer_sname)) == \"sp_microzoo\"": 1.35,
@@ -1281,7 +1281,7 @@
       },
       "f_graze_CaCO3_remin": {
          "datatype": "real",
-         "default_value": 0.92,
+         "default_value": 0.7,
          "dependencies": "base_bio_on",
          "longname": "Fraction of spCaCO3 grazing which is remineralized in zooplankton guts",
          "subcategory": "5. general parameters",

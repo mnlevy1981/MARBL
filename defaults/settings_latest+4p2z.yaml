@@ -793,7 +793,7 @@ general_parms :
       subcategory : 5. general parameters
       units : '1'
       datatype : real
-      default_value : 0.92
+      default_value : 0.7
 
 ################################################################################
 #                    Category 1.5: General Parameters (cont)                   #
@@ -1047,7 +1047,7 @@ PFT_derived_types :
             default_value :
                default : 1e34
                ((autotroph_sname)) == "sp" : 0
-               ((autotroph_sname)) == "diat" : 1.6
+               ((autotroph_sname)) == "diat" : 1.3
                ((autotroph_sname)) == "diaz" : 0
                ((autotroph_sname)) == "cocco" : 0
          Qp_fixed :
@@ -1251,7 +1251,7 @@ PFT_derived_types :
             default_value :
                default : 1e34
                ((autotroph_sname)) == "sp" : 0.1
-               ((autotroph_sname)) == "diat" : 0.1
+               ((autotroph_sname)) == "diat" : 0.16
                ((autotroph_sname)) == "diaz" : 0.1
                ((autotroph_sname)) == "cocco" : 0.13
          mort2_per_day :
@@ -1480,9 +1480,9 @@ PFT_derived_types :
                default : 1e34
                ((grazer_sname)) == "sp_microzoo" : 1.35
                ((grazer_sname)) == "diat_mesozoo" : 0.8
-               ((grazer_sname)) == "diaz_microzoo" : 1.2
-               ((grazer_sname)) == "diaz_mesozoo" : 1.2
-               ((grazer_sname)) == "cocco_microzoo" : 2.2
+               ((grazer_sname)) == "diaz_microzoo" : 1.3
+               ((grazer_sname)) == "diaz_mesozoo" : 1.3
+               ((grazer_sname)) == "cocco_microzoo" : 2.25
                ((grazer_sname)) == "cocco_mesozoo" : 2.9
                ((grazer_sname)) == "microzoo_mesozoo" : 1.3
                ((grazer_sname)) == "null" : 0
