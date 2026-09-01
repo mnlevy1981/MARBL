@@ -2319,7 +2319,7 @@ contains
         lname = 'POC Flux into Cell'
         sname = 'POC_FLUX_IN'
         units = unit_system%conc_flux_units
-        vgrid = 'layer_avg'
+        vgrid = 'layer_iface'
         truncate = .false.
         call diags%add_diagnostic(lname, sname, units, vgrid, truncate,     &
             ind%POC_FLUX_IN, marbl_status_log)
@@ -2331,7 +2331,7 @@ contains
         lname = 'POC sFlux into Cell'
         sname = 'POC_sFLUX_IN'
         units = unit_system%conc_flux_units
-        vgrid = 'layer_avg'
+        vgrid = 'layer_iface'
         truncate = .false.
         call diags%add_diagnostic(lname, sname, units, vgrid, truncate,     &
             ind%POC_sFLUX_IN, marbl_status_log)
@@ -2343,7 +2343,7 @@ contains
         lname = 'POC hFlux into Cell'
         sname = 'POC_hFLUX_IN'
         units = unit_system%conc_flux_units
-        vgrid = 'layer_avg'
+        vgrid = 'layer_iface'
         truncate = .false.
         call diags%add_diagnostic(lname, sname, units, vgrid, truncate,     &
             ind%POC_hFLUX_IN, marbl_status_log)
@@ -3941,9 +3941,12 @@ contains
             interior_tendency_forcings(interior_tendency_forcing_ind%p_remin_scalef_id)%field_1d(1,:)
     endif
     diags(ind%POC_FLUX_at_ref_depth)%field_2d(1) = POC%flux_at_ref_depth
-    diags(ind%POC_FLUX_IN)%field_3d(:, 1)        = POC%sflux_in + POC%hflux_in
-    diags(ind%POC_sFLUX_IN)%field_3d(:, 1)       = POC%sflux_in
-    diags(ind%POC_hFLUX_IN)%field_3d(:, 1)       = POC%hflux_in
+    diags(ind%POC_FLUX_IN)%field_3d(1:kmt, 1) = POC%sflux_in(1:kmt) + POC%hflux_in(1:kmt)
+    diags(ind%POC_FLUX_IN)%field_3d(kmt+1, 1) = sum(POC%sed_loss)
+    diags(ind%POC_sFLUX_IN)%field_3d(1:kmt, 1)       = POC%sflux_in(1:kmt)
+    diags(ind%POC_sFLUX_IN)%field_3d(kmt+1, 1)       = c0
+    diags(ind%POC_hFLUX_IN)%field_3d(1:kmt, 1)       = POC%hflux_in(1:kmt)
+    diags(ind%POC_hFLUX_IN)%field_3d(kmt+1, 1)       = c0
     diags(ind%POC_PROD)%field_3d(:, 1)           = POC%prod
     call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%POC_PROD)%field_3d(:, 1), &
          delta_z, kmt, unit_system, full_depth_integral=diags(ind%POC_PROD_zint)%field_2d(1), &
