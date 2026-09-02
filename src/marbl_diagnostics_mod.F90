@@ -3920,6 +3920,8 @@ contains
     type(unit_system_type)                             , intent(in)    :: unit_system
     type(marbl_diagnostics_type)                       , intent(inout) :: marbl_interior_tendency_diags
 
+    real(r8) :: POC_sed_loss, rPOC_to_floor
+
     associate(                                                       &
          ind             => marbl_interior_tendency_diag_ind,        &
          diags           => marbl_interior_tendency_diags%diags,     &
@@ -3940,13 +3942,21 @@ contains
        diags(ind%P_REMIN_SCALEF)%field_3d(:, 1) = &
             interior_tendency_forcings(interior_tendency_forcing_ind%p_remin_scalef_id)%field_1d(1,:)
     endif
+    POC_sed_loss = sum(POC%sed_loss)
     diags(ind%POC_FLUX_at_ref_depth)%field_2d(1) = POC%flux_at_ref_depth
     diags(ind%POC_FLUX_IN)%field_3d(1:kmt, 1) = POC%sflux_in(1:kmt) + POC%hflux_in(1:kmt)
-    diags(ind%POC_FLUX_IN)%field_3d(kmt+1, 1) = sum(POC%sed_loss)
+    diags(ind%POC_FLUX_IN)%field_3d(kmt+1, 1) = POC_sed_loss
     diags(ind%POC_sFLUX_IN)%field_3d(1:kmt, 1)       = POC%sflux_in(1:kmt)
-    diags(ind%POC_sFLUX_IN)%field_3d(kmt+1, 1)       = c0
     diags(ind%POC_hFLUX_IN)%field_3d(1:kmt, 1)       = POC%hflux_in(1:kmt)
-    diags(ind%POC_hFLUX_IN)%field_3d(kmt+1, 1)       = c0
+    if (POC%to_floor > 0) then
+       rPOC_to_floor = c1 / POC%to_floor
+       diags(ind%POC_sFLUX_IN)%field_3d(kmt+1, 1) = (POC%sflux_out(kmt) * rPOC_to_floor) * POC_sed_loss
+       diags(ind%POC_hFLUX_IN)%field_3d(kmt+1, 1) = (POC%hflux_out(kmt) * rPOC_to_floor) * POC_sed_loss
+    else
+       rPOC_to_floor = c0
+       diags(ind%POC_sFLUX_IN)%field_3d(kmt+1, 1) = c0
+       diags(ind%POC_hFLUX_IN)%field_3d(kmt+1, 1) = c0
+    endif
     diags(ind%POC_PROD)%field_3d(:, 1)           = POC%prod
     call marbl_diagnostics_share_compute_vertical_integrals(diags(ind%POC_PROD)%field_3d(:, 1), &
          delta_z, kmt, unit_system, full_depth_integral=diags(ind%POC_PROD_zint)%field_2d(1), &
@@ -4005,7 +4015,7 @@ contains
     diags(ind%calcToSed_ALT_CO2)%field_2d(1) = sum(P_CaCO3_ALT_CO2%sed_loss)
     diags(ind%bsiToSed)%field_2d(1)          = sum(P_SiO2%sed_loss)
     diags(ind%pocToFloor)%field_2d(1)        = POC%to_floor
-    diags(ind%pocToSed)%field_2d(1)          = sum(POC%sed_loss)
+    diags(ind%pocToSed)%field_2d(1)          = POC_sed_loss
     diags(ind%SedDenitrif)%field_2d(1)       = sum(sed_denitrif * delta_z)
     diags(ind%OtherRemin)%field_2d(1)        = sum(other_remin * delta_z)
     diags(ind%ponToSed)%field_2d(1)          = sum(PON%sed_loss)
